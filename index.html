@@ -77,6 +77,21 @@ header{display:flex;flex-direction:column;gap:12px}
 /* staircase */
 .stair{position:relative;display:flex;align-items:flex-end;gap:4px;overflow-x:auto;padding:4px 2px 6px;scroll-snap-type:x proximity;scrollbar-width:thin}
 .step{flex:1 0 58px;min-width:58px;scroll-snap-align:center;border:1px solid var(--line);background:var(--surface);border-radius:8px 8px 3px 3px;padding:8px 6px;display:flex;flex-direction:column;align-items:flex-start;justify-content:flex-start;gap:2px;cursor:pointer;text-align:left;transition:background .15s,border-color .15s,color .15s}
+.step{height:calc(64px + var(--i) * 11px)}
+.lv-nav,.lv-pick{display:none}
+/* phones: the staircase becomes a thin progress strip; a full-size ‹ select › row picks the level */
+@media (max-width:620px){
+  .stair{overflow:visible;gap:3px;padding:4px 0 0}
+  .step{flex:1 1 0;min-width:0;height:calc(10px + var(--i) * 4px);padding:0;border-radius:4px 4px 1px 1px}
+  .step .lv,.step .nm{display:none}
+  .lv-nav{display:flex;gap:8px;align-items:stretch}
+  .lv-pick{display:block;margin-top:-6px}
+}
+.lv-step{flex:none;width:44px;height:44px;border:1px solid var(--line);border-radius:10px;background:var(--surface);color:var(--ink);font-size:24px;line-height:1;cursor:pointer;padding:0 0 3px}
+.lv-step:disabled{opacity:.35;cursor:default}
+.lv-sel{position:relative;flex:1;min-width:0}
+.lv-sel::after{content:"";position:absolute;right:16px;top:50%;width:7px;height:7px;border-right:2px solid var(--muted);border-bottom:2px solid var(--muted);transform:translateY(-70%) rotate(45deg);pointer-events:none}
+#lv-select{width:100%;height:44px;-webkit-appearance:none;appearance:none;font:inherit;font-size:16px;font-weight:600;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:0 36px 0 14px}
 .step .lv{font-family:var(--font-mono);font-size:11px;color:var(--muted)}
 .step .nm{font-size:13px;font-weight:600;line-height:1.3}
 .step:hover{border-color:var(--accent)}
@@ -136,7 +151,6 @@ header{display:flex;flex-direction:column;gap:12px}
 .status{font-size:13px;color:var(--muted);min-height:1.4em}
 
 /* save box */
-.save{border-top:1px solid var(--line);padding-top:20px;display:flex;flex-direction:column;gap:10px}
 #paste{width:100%;height:132px;resize:vertical;font-family:var(--font-mono);font-size:16px;line-height:1.5;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px}
 #paste::placeholder{color:var(--muted);opacity:.8;font-size:13px}
 .save-row{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
@@ -177,6 +191,44 @@ header{display:flex;flex-direction:column;gap:12px}
 /* iOS zooms into any focused field under 16px; the prompt box gets focused when copy falls back to selecting */
 @media (hover:none) and (pointer:coarse){#out{font-size:16px}}
 
+/* tabs: fixed bottom bar on phones, sticky top bar on wide screens */
+.wrap{padding-block:20px calc(76px + env(safe-area-inset-bottom,0px))}
+.panel{display:flex;flex-direction:column;gap:56px}
+.panel-practice{gap:16px}
+.tabbar{position:fixed;left:0;right:0;bottom:0;z-index:10;display:flex;background:var(--surface);border-top:1px solid var(--line);padding:0 env(safe-area-inset-right,0px) env(safe-area-inset-bottom,0px) env(safe-area-inset-left,0px)}
+.tabbar button{flex:1;border:0;background:none;padding:8px 0 6px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px;font-size:12px;color:var(--muted);-webkit-tap-highlight-color:transparent}
+.tabbar svg{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.tabbar button[aria-selected="true"]{color:var(--accent);font-weight:600}
+@media (min-width:768px){
+  .tabbar{position:sticky;top:0;bottom:auto;justify-content:center;gap:8px;border-top:0;border-bottom:1px solid var(--line);padding:0}
+  .tabbar button{flex:0 0 auto;flex-direction:row;gap:6px;padding:12px 20px;font-size:14px}
+  .tabbar svg{width:18px;height:18px}
+  .wrap{padding-block:32px 72px}
+}
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+.topbar{display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap}
+.brand{font-family:var(--font-display);font-size:22px;font-weight:700;line-height:1.25}
+.now{font-family:var(--font-mono);font-size:12px;color:var(--muted)}
+
+/* compact episodes: number and title only; the chosen one's summary sits below */
+.eps{grid-template-columns:repeat(3,minmax(0,1fr))}
+.ep{padding:10px 12px}
+.ep .d{display:none}
+.ep .t{font-size:14px}
+.ep .badge{margin-top:2px}
+@media (max-width:420px){.ep{padding:8px 9px}.ep .no{font-size:11px}}
+
+/* big copy button and collapsible extras */
+.btn.big{width:100%;padding:14px 18px;font-size:17px}
+details.more{border:1px solid var(--line);border-radius:10px;background:var(--surface)}
+details.more>summary{list-style:none;cursor:pointer;padding:11px 14px;font-size:14px;font-weight:600;display:flex;justify-content:space-between;align-items:center;gap:12px}
+details.more>summary::-webkit-details-marker{display:none}
+details.more>summary::after{content:"";flex:none;width:7px;height:7px;border-right:2px solid var(--muted);border-bottom:2px solid var(--muted);transform:translateY(-2px) rotate(45deg);transition:transform .15s}
+details.more[open]>summary::after{transform:translateY(2px) rotate(-135deg)}
+.more-body{padding:0 14px 14px;display:flex;flex-direction:column;gap:10px}
+.more .level-card{border:0;padding:0;background:none}
+details.save{margin-top:8px}
+
 /* reading sections */
 .steps{margin:0;padding-left:1.4em;display:flex;flex-direction:column;gap:6px}
 .bullets{margin:0;padding-left:1.2em;display:flex;flex-direction:column;gap:6px}
@@ -204,30 +256,42 @@ footer{font-size:12px;color:var(--muted)}
 </style>
 </head>
 <body>
+<nav class="tabbar" id="tabbar" role="tablist" aria-label="页面">
+  <button type="button" role="tab" id="tab-btn-practice" data-tab="practice" aria-controls="tab-practice" aria-selected="true">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 20h5v-5h5v-5h5V5h3"/></svg><span>练习</span>
+  </button>
+  <button type="button" role="tab" id="tab-btn-notebook" data-tab="notebook" aria-controls="tab-notebook" aria-selected="false">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h11a3 3 0 0 1 3 3v13H8a3 3 0 0 1-3-3z"/><path d="M5 17a3 3 0 0 1 3-3h11"/></svg><span>复习本</span>
+  </button>
+  <button type="button" role="tab" id="tab-btn-guide" data-tab="guide" aria-controls="tab-guide" aria-selected="false">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5v.5"/></svg><span>说明</span>
+  </button>
+</nav>
 <div class="wrap">
-  <header>
-    <p class="eyebrow">English Grammar in Use · 第 5 版对照</p>
-    <h1>口语阶梯</h1>
-    <p class="lede">你来演主角 Leo，跟着他过一年：上海的外企、温哥华外派、落基山独行。每一集先演，再重演，三集之后复习一次。练完把复习卡存下来，下次 AI 会先考你。</p>
-  </header>
-
-  <div class="principles">
-    <div><b>宁低勿高</b><span>每一级的标准是说起来不费劲。觉得难，就往回退一级。</span></div>
-    <div><b>没有任务</b><span>不打卡，不考核。30 分钟只是参考，一集演几遍都行。</span></div>
-    <div><b>先回忆，再开口</b><span>每次开头 AI 先用中文提示，让你自己想起英文，比重读一遍记得牢。</span></div>
+<div class="panel panel-practice" id="tab-practice" role="tabpanel" aria-labelledby="tab-btn-practice">
+  <div class="topbar">
+    <p class="brand">口语阶梯</p>
+    <p class="now" id="now" aria-live="polite"></p>
   </div>
 
   <section id="builder" aria-labelledby="h-builder">
-    <h2 id="h-builder">今天练什么</h2>
+    <h2 id="h-builder" class="sr-only">今天练什么</h2>
     <div class="seg" id="mode" role="group" aria-label="练习方式">
       <button type="button" data-mode="story" aria-pressed="true">主线故事</button>
       <button type="button" data-mode="free" aria-pressed="false">自由聊</button>
     </div>
     <div class="stair" id="stair" role="group" aria-label="选择级别"></div>
+    <div class="lv-nav">
+      <button type="button" class="lv-step" id="lv-prev" aria-label="上一级">‹</button>
+      <span class="lv-sel"><select id="lv-select" aria-label="选择级别"></select></span>
+      <button type="button" class="lv-step" id="lv-next" aria-label="下一级">›</button>
+    </div>
+    <p class="lv-pick muted small" id="lv-pick"></p>
 
     <div class="field" id="ep-field">
       <span class="field-label">这一级的三集</span>
       <div class="eps" id="eps" role="group" aria-label="选择一集"></div>
+      <p class="muted small" id="ep-desc"></p>
     </div>
 
     <div class="field" id="kind-field">
@@ -239,8 +303,6 @@ footer{font-size:12px;color:var(--muted)}
       </div>
       <p class="muted small" id="kind-note"></p>
     </div>
-
-    <div id="card"></div>
 
     <div class="field" id="topic-field" hidden>
       <span class="field-label">话题</span>
@@ -257,28 +319,36 @@ footer{font-size:12px;color:var(--muted)}
     </div>
 
     <div class="prompt">
-      <div class="prompt-head">
-        <div>
-          <h3>提示词</h3>
-          <p class="hint">粘贴到 ChatGPT 新对话里发送，然后在同一个对话里点语音按钮。</p>
-        </div>
-        <button class="btn" id="copy" type="button">复制提示词</button>
-      </div>
-      <textarea id="out" readonly spellcheck="false" aria-label="生成的提示词"></textarea>
+      <button class="btn big" id="copy" type="button">复制提示词</button>
+      <p class="hint">粘贴到 ChatGPT 新对话里发送，然后在同一个对话里点语音按钮。</p>
       <p class="status" id="copy-status" aria-live="polite"></p>
+      <details class="more" id="prompt-more">
+        <summary>查看提示词全文</summary>
+        <div class="more-body">
+          <textarea id="out" readonly spellcheck="false" aria-label="生成的提示词"></textarea>
+        </div>
+      </details>
+      <details class="more" id="level-more">
+        <summary>这一级的语法和句式</summary>
+        <div class="more-body"><div id="card"></div></div>
+      </details>
     </div>
 
-    <div class="save" id="save">
-      <h3>练完之后：存复习卡</h3>
-      <p class="hint">在 ChatGPT 里退出语音，打字 wrap up。它会在最后给一个代码块，点代码块的复制按钮，贴到下面。</p>
-      <textarea id="paste" spellcheck="false" aria-label="贴入复习卡" placeholder="E: I've never been to Xi'an | 我从没去过西安&#10;G: 现在完成时 | Unit 7&#10;S: I have went there | I've been there"></textarea>
-      <div class="save-row">
-        <button class="btn" id="save-btn" type="button" disabled>存到第 1 集</button>
-        <span class="status" id="save-status" aria-live="polite"></span>
+    <details class="more save" id="save">
+      <summary>练完了？存复习卡</summary>
+      <div class="more-body">
+        <p class="hint">在 ChatGPT 里退出语音，打字 wrap up。它会在最后给一个代码块，点代码块的复制按钮，贴到下面。</p>
+        <textarea id="paste" spellcheck="false" aria-label="贴入复习卡" placeholder="E: I've never been to Xi'an | 我从没去过西安&#10;G: 现在完成时 | Unit 7&#10;S: I have went there | I've been there"></textarea>
+        <div class="save-row">
+          <button class="btn" id="save-btn" type="button" disabled>存到第 1 集</button>
+          <span class="status" id="save-status" aria-live="polite"></span>
+        </div>
       </div>
-    </div>
+    </details>
   </section>
+</div>
 
+<div class="panel" id="tab-notebook" role="tabpanel" aria-labelledby="tab-btn-notebook" hidden>
   <section id="notebook" aria-labelledby="h-nb">
     <div class="nb-head">
       <h2 id="h-nb">复习本</h2>
@@ -308,6 +378,20 @@ footer{font-size:12px;color:var(--muted)}
     </div>
     <div class="nb" id="nb"></div>
   </section>
+</div>
+
+<div class="panel" id="tab-guide" role="tabpanel" aria-labelledby="tab-btn-guide" hidden>
+  <header>
+    <p class="eyebrow">English Grammar in Use · 第 5 版对照</p>
+    <h1>口语阶梯</h1>
+    <p class="lede">你来演主角 Leo，跟着他过一年：上海的外企、温哥华外派、落基山独行。每一集先演，再重演，三集之后复习一次。练完把复习卡存下来，下次 AI 会先考你。</p>
+  </header>
+
+  <div class="principles">
+    <div><b>宁低勿高</b><span>每一级的标准是说起来不费劲。觉得难，就往回退一级。</span></div>
+    <div><b>没有任务</b><span>不打卡，不考核。30 分钟只是参考，一集演几遍都行。</span></div>
+    <div><b>先回忆，再开口</b><span>每次开头 AI 先用中文提示，让你自己想起英文，比重读一遍记得牢。</span></div>
+  </div>
 
   <section aria-labelledby="h-how">
     <h2 id="h-how">怎么用</h2>
@@ -408,6 +492,7 @@ footer{font-size:12px;color:var(--muted)}
   </section>
 
   <footer>单元编号按 Raymond Murphy《English Grammar in Use》第 5 版（Cambridge, 2019）。故事中的公司和人物均为虚构。</footer>
+</div>
 </div>
 
 <script>
@@ -823,7 +908,7 @@ const KIND_LABEL = { new:`新演`, replay:`重演`, review:`本级复习`, free:
 
 /* ---------- state ---------- */
 const KEY = `speaking-ladder-v3`;
-let state = { mode:`story`, kind:`new`, level:1, ep:1, topic:`auto`, custom:``, zh:true, easy:false, nbAll:false, quiz:false, paste:`` };
+let state = { mode:`story`, kind:`new`, level:1, ep:1, topic:`auto`, custom:``, zh:true, easy:false, nbAll:false, quiz:false, paste:``, tab:`practice` };
 try {
   const s = JSON.parse(localStorage.getItem(KEY) || localStorage.getItem(`speaking-ladder-v2`) || `null`);
   if (s && typeof s === `object`) state = Object.assign(state, s);
@@ -836,6 +921,7 @@ function normalizeState(){
   if (!TOPICS.some(t => t.id === state.topic)) state.topic = `auto`;
   if (typeof state.custom !== `string`) state.custom = ``;
   if (typeof state.paste !== `string`) state.paste = ``;
+  if (![`practice`,`notebook`,`guide`].includes(state.tab)) state.tab = `practice`;
   if (EPISODES[state.ep - 1].lv !== state.level) state.ep = EPISODES.findIndex(e => e.lv === state.level) + 1;
 }
 normalizeState();
@@ -866,7 +952,7 @@ function removeSave(id){
 /* ---------- export / import (manual sync between devices) ---------- */
 const EXPORT_APP = `speaking-ladder`;
 function exportText(){
-  const { paste, ...settings } = state;
+  const { paste, tab, ...settings } = state;
   return JSON.stringify({ app: EXPORT_APP, version: 1, exportedAt: new Date().toISOString(), settings, cards: store.local }, null, 2);
 }
 function cleanSave(s){
@@ -902,7 +988,7 @@ function importText(text){
     if (!persistLocal()) { store.local = store.local.slice(0, store.local.length - fresh.length); throw new Error(`这台设备的存储写不进去（可能是无痕模式或空间不足），没有导入。`); }
   }
   if (settings) {
-    const { paste, ...rest } = settings;
+    const { paste, tab, ...rest } = settings;
     Object.assign(state, rest); normalizeState(); save();
   }
   return { added: fresh.length, skipped, invalid, settings: !!settings };
@@ -910,7 +996,7 @@ function importText(text){
 
 /* Copy inside the click handler. If the clipboard API refuses, select all text so the user can copy by hand. */
 function copyFrom(el, onDone, onFail){
-  const selectAll = () => { try { el.focus({ preventScroll: true }); el.setSelectionRange(0, el.value.length); } catch(e) {} };
+  const selectAll = () => { const d = el.closest(`details`); if (d) d.open = true; try { el.focus({ preventScroll: true }); el.setSelectionRange(0, el.value.length); } catch(e) {} };
   if (navigator.clipboard && navigator.clipboard.writeText) {
     let p = null;
     try { p = navigator.clipboard.writeText(el.value); } catch(e) {}
@@ -995,13 +1081,18 @@ function renderMode(){
     note = `Lv${L} 的三集都演过以后用。新场景「${REVIEWS[L].title}」，开头抽这一级的复习卡（目前 ${c} 张），最后让你复述三集。`;
   }
   $(`kind-note`).textContent = note;
+  $(`now`).textContent = !story ? `Lv${L} · 自由聊` : state.kind === `review` ? `Lv${L} · 本级复习` : `Lv${L} · 第 ${n} 集 · ${KIND_LABEL[state.kind]}`;
 }
 function renderStair(){
   $(`stair`).innerHTML = LEVELS.map((L, i) => {
-    const h = 64 + i * 11;
     const cls = L.id < state.level ? `step below` : `step`;
-    return `<button type="button" class="${cls}" style="height:${h}px" aria-pressed="${L.id === state.level}" data-lv="${L.id}" aria-label="Lv${L.id} ${esc(L.name)}"><span class="lv">Lv${L.id}</span><span class="nm">${esc(L.short)}</span></button>`;
+    return `<button type="button" class="${cls}" style="--i:${i}" aria-pressed="${L.id === state.level}" data-lv="${L.id}" aria-label="Lv${L.id} ${esc(L.name)}"><span class="lv">Lv${L.id}</span><span class="nm">${esc(L.short)}</span></button>`;
   }).join(``);
+  const L = LEVELS[state.level - 1];
+  $(`lv-select`).innerHTML = LEVELS.map(x => `<option value="${x.id}"${x.id === state.level ? ` selected` : ``}>Lv${x.id} · ${esc(x.name)}</option>`).join(``);
+  $(`lv-prev`).disabled = state.level <= 1;
+  $(`lv-next`).disabled = state.level >= LEVELS.length;
+  $(`lv-pick`).textContent = L.can;
 }
 function centerStep(){
   const stair = $(`stair`);
@@ -1016,6 +1107,7 @@ function renderEps(){
     const badge = c ? `<span class="badge">已存 ${c} 张卡</span>` : ``;
     return `<button type="button" class="ep" aria-pressed="${n === state.ep}" data-ep="${n}"><span class="no">第 ${n} 集 · ${esc(ACTS[e.lv])}</span><span class="t">${esc(e.title)}</span><span class="d">${esc(e.zh)}</span>${badge}</button>`;
   }).join(``);
+  $(`ep-desc`).textContent = EPISODES[state.ep - 1].zh;
 }
 function renderCard(){
   const L = LEVELS[state.level - 1];
@@ -1323,13 +1415,31 @@ function setLevel(n){
   save(); renderAll(); centerStep();
 }
 function setEp(n){ state.ep = n; state.level = EPISODES[n - 1].lv; save(); renderAll(); centerStep(); }
-function goBuilder(){
-  const reduce = window.matchMedia && window.matchMedia(`(prefers-reduced-motion: reduce)`).matches;
-  $(`builder`).scrollIntoView({ behavior: reduce ? `auto` : `smooth`, block: `start` });
+function goBuilder(){ setTab(`practice`); centerStep(); }
+
+/* tabs */
+function renderTab(){
+  [`practice`,`notebook`,`guide`].forEach(t => {
+    $(`tab-` + t).hidden = t !== state.tab;
+    $(`tab-btn-` + t).setAttribute(`aria-selected`, String(t === state.tab));
+  });
 }
+function setTab(t){
+  const changed = state.tab !== t;
+  state.tab = t; save(); renderTab();
+  if (changed) window.scrollTo(0, 0);
+}
+$(`tabbar`).addEventListener(`click`, e => {
+  const b = e.target.closest(`[data-tab]`); if (!b) return;
+  setTab(b.dataset.tab);
+  if (state.tab === `practice`) centerStep();
+});
 
 $(`mode`).addEventListener(`click`, e => { const b = e.target.closest(`[data-mode]`); if (!b) return; state.mode = b.dataset.mode; save(); renderAll(); });
 $(`kinds`).addEventListener(`click`, e => { const b = e.target.closest(`[data-kind]`); if (!b) return; state.kind = b.dataset.kind; save(); renderAll(); });
+$(`lv-select`).addEventListener(`change`, e => setLevel(Number(e.target.value)));
+$(`lv-prev`).addEventListener(`click`, () => { if (state.level > 1) setLevel(state.level - 1); });
+$(`lv-next`).addEventListener(`click`, () => { if (state.level < LEVELS.length) setLevel(state.level + 1); });
 $(`stair`).addEventListener(`click`, e => { const b = e.target.closest(`[data-lv]`); if (!b) return; setLevel(Number(b.dataset.lv)); });
 $(`eps`).addEventListener(`click`, e => { const b = e.target.closest(`[data-ep]`); if (!b) return; setEp(Number(b.dataset.ep)); });
 $(`map`).addEventListener(`click`, e => { const b = e.target.closest(`[data-lv]`); if (!b) return; setLevel(Number(b.dataset.lv)); goBuilder(); });
@@ -1435,7 +1545,8 @@ $(`imp-btn`).addEventListener(`click`, () => {
 $(`opt-zh`).checked = !!state.zh;
 $(`opt-easy`).checked = !!state.easy;
 $(`paste`).value = state.paste || ``;
-renderMap(); renderToc(); renderAll();
+if (state.paste.trim()) $(`save`).open = true;
+renderTab(); renderMap(); renderToc(); renderAll();
 requestAnimationFrame(centerStep);
 
 if (`serviceWorker` in navigator) {
