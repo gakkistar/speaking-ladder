@@ -1,0 +1,1446 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>口语阶梯</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="口语阶梯">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="theme-color" content="#F3F5F8" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0F1217" media="(prefers-color-scheme: dark)">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<!-- Loaded without blocking render: if Google Fonts is slow or unreachable, the system fonts in the CSS stacks show right away -->
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=JetBrains+Mono:wght@400;500&display=swap" media="print" onload="this.media='all'">
+<style>
+/* Base (formerly supplied by the Artifact shell) */
+body{margin:0}
+img{max-width:100%}
+:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+[hidden]{display:none!important}
+
+/* Layout: one quiet 720px study column; a literal 11-step staircase is the only bold element */
+:root{
+  --bg:#F3F5F8; --surface:#FFFFFF; --sunk:#EBEEF3; --ink:#17202B; --muted:#5A6576; --line:#D9DFE7;
+  --accent:#2C56C4; --accent-ink:#FFFFFF; --accent-soft:#E2E9F9; --mark:#FFE57A; --mark-ink:#3A2F00;
+  --font-display:"Bricolage Grotesque","PingFang SC","Hiragino Sans GB","Microsoft YaHei","Noto Sans SC",system-ui,sans-serif;
+  --font-body:system-ui,-apple-system,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei","Noto Sans SC",sans-serif;
+  --font-mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,"PingFang SC",monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0F1217; --surface:#161A21; --sunk:#1C212A; --ink:#E5E8ED; --muted:#9AA3B1; --line:#29303A;
+    --accent:#88A6FF; --accent-ink:#0C1430; --accent-soft:#1D2742; --mark:#4B4012; --mark-ink:#FFE48A;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0F1217; --surface:#161A21; --sunk:#1C212A; --ink:#E5E8ED; --muted:#9AA3B1; --line:#29303A;
+  --accent:#88A6FF; --accent-ink:#0C1430; --accent-soft:#1D2742; --mark:#4B4012; --mark-ink:#FFE48A;
+  color-scheme:dark;
+}
+
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--font-body);font-size:15px;line-height:1.7}
+.wrap{max-width:720px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:40px 72px;display:flex;flex-direction:column;gap:56px}
+h1,h2,h3{font-family:var(--font-display);text-wrap:balance;margin:0;line-height:1.25}
+h1{font-size:clamp(34px,7vw,46px);font-weight:700;letter-spacing:-0.01em}
+h2{font-size:22px;font-weight:700}
+h3{font-size:17px;font-weight:700}
+p{margin:0}
+.eyebrow{font-family:var(--font-mono);font-size:12px;letter-spacing:.06em;color:var(--muted);text-transform:uppercase}
+.muted{color:var(--muted)}
+.small{font-size:13px}
+section{display:flex;flex-direction:column;gap:16px}
+button{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+header{display:flex;flex-direction:column;gap:12px}
+.lede{font-size:16px;color:var(--muted);max-width:34em}
+
+.principles{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:20px}
+.principles div{border-top:2px solid var(--ink);padding-top:10px;display:flex;flex-direction:column;gap:4px}
+.principles b{font-family:var(--font-display);font-size:16px}
+.principles span{color:var(--muted);font-size:14px}
+@media (max-width:620px){.principles{grid-template-columns:1fr;gap:16px}}
+
+/* segmented controls */
+.seg{display:inline-flex;align-self:flex-start;flex-wrap:wrap;border:1px solid var(--line);border-radius:999px;padding:3px;background:var(--surface);gap:2px}
+.seg button{border:0;background:none;padding:6px 16px;border-radius:999px;cursor:pointer;font-size:14px}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
+
+/* staircase */
+.stair{position:relative;display:flex;align-items:flex-end;gap:4px;overflow-x:auto;padding:4px 2px 6px;scroll-snap-type:x proximity;scrollbar-width:thin}
+.step{flex:1 0 58px;min-width:58px;scroll-snap-align:center;border:1px solid var(--line);background:var(--surface);border-radius:8px 8px 3px 3px;padding:8px 6px;display:flex;flex-direction:column;align-items:flex-start;justify-content:flex-start;gap:2px;cursor:pointer;text-align:left;transition:background .15s,border-color .15s,color .15s}
+.step .lv{font-family:var(--font-mono);font-size:11px;color:var(--muted)}
+.step .nm{font-size:13px;font-weight:600;line-height:1.3}
+.step:hover{border-color:var(--accent)}
+.step.below{background:var(--accent-soft);border-color:transparent}
+.step[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.step[aria-pressed="true"] .lv{color:var(--accent-ink);opacity:.8}
+
+/* episodes */
+.eps{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+@media (max-width:620px){.eps{grid-template-columns:1fr}}
+.ep{text-align:left;border:1px solid var(--line);background:var(--surface);border-radius:10px;padding:12px 14px;cursor:pointer;display:flex;flex-direction:column;gap:3px;min-width:0}
+.ep:hover{border-color:var(--accent)}
+.ep .no{font-family:var(--font-mono);font-size:12px;color:var(--muted)}
+.ep .t{font-weight:600;font-size:15px;line-height:1.4}
+.ep .d{font-size:13px;color:var(--muted);line-height:1.5}
+.ep .badge{font-family:var(--font-mono);font-size:11px;color:var(--muted);margin-top:4px}
+.ep[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-soft)}
+.ep[aria-pressed="true"] .no{color:var(--accent)}
+
+/* level card */
+.level-card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:20px;display:flex;flex-direction:column;gap:14px}
+.lc-head{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.lc-lv{font-family:var(--font-mono);font-size:13px;color:var(--accent);font-weight:500}
+.lc-head h3{font-size:20px}
+.lc-head .en{font-family:var(--font-display);font-weight:500;color:var(--muted);font-size:15px}
+.lc-row{display:grid;grid-template-columns:88px minmax(0,1fr);gap:12px;align-items:start}
+.lc-label{font-size:13px;color:var(--muted);padding-top:3px}
+@media (max-width:520px){.lc-row{grid-template-columns:1fr;gap:6px}}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.unit{display:inline-flex;align-items:baseline;gap:6px;background:var(--mark);color:var(--mark-ink);border-radius:4px;padding:2px 8px;font-size:13px}
+.unit code{font-family:var(--font-mono);font-size:12px;font-weight:500}
+.frames{margin:0;padding:0;list-style:none;display:flex;flex-wrap:wrap;gap:6px}
+.frames li{font-family:var(--font-display);font-size:14px;border:1px solid var(--line);border-radius:6px;padding:2px 9px}
+
+/* topics & options */
+.field{display:flex;flex-direction:column;gap:10px}
+.field-label{font-size:14px;font-weight:600}
+.topics{display:flex;flex-wrap:wrap;gap:8px}
+.topic{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:5px 14px;font-size:14px;cursor:pointer}
+.topic:hover{border-color:var(--accent)}
+.topic[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+#custom{font:inherit;font-size:16px;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 12px;width:100%}
+.options{display:flex;flex-wrap:wrap;gap:10px 24px}
+.options label{display:flex;align-items:center;gap:8px;font-size:14px;cursor:pointer}
+.options input{width:17px;height:17px;accent-color:var(--accent)}
+
+/* prompt */
+.prompt{display:flex;flex-direction:column;gap:10px}
+.prompt-head{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;flex-wrap:wrap}
+.prompt-head > div{min-width:0;display:flex;flex-direction:column;gap:2px}
+.hint{font-size:13px;color:var(--muted)}
+.btn{background:var(--accent);color:var(--accent-ink);border:0;border-radius:8px;padding:10px 18px;font-weight:600;font-size:15px;cursor:pointer;white-space:nowrap}
+.btn:hover{filter:brightness(1.06)}
+.btn:disabled{opacity:.45;cursor:not-allowed;filter:none}
+.btn.ghost{background:none;color:var(--ink);border:1px solid var(--line);font-weight:500;padding:6px 12px;font-size:13px}
+#out{width:100%;height:300px;resize:vertical;font-family:var(--font-mono);font-size:12.5px;line-height:1.6;color:var(--ink);background:var(--sunk);border:1px solid var(--line);border-radius:10px;padding:14px}
+.status{font-size:13px;color:var(--muted);min-height:1.4em}
+
+/* save box */
+.save{border-top:1px solid var(--line);padding-top:20px;display:flex;flex-direction:column;gap:10px}
+#paste{width:100%;height:132px;resize:vertical;font-family:var(--font-mono);font-size:16px;line-height:1.5;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px}
+#paste::placeholder{color:var(--muted);opacity:.8;font-size:13px}
+.save-row{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+
+/* notebook */
+.nb-head{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.nb-tools{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.nb-tools label{display:flex;align-items:center;gap:6px;font-size:14px;cursor:pointer}
+.nb-tools input{width:16px;height:16px;accent-color:var(--accent)}
+.nb{display:flex;flex-direction:column;gap:18px}
+.nb-group{display:flex;flex-direction:column;gap:8px}
+.nb-group h3{font-size:15px}
+.nb-group h3 span{font-family:var(--font-mono);font-size:12px;color:var(--accent);font-weight:500;margin-right:6px}
+.nb-save{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:10px 14px;display:flex;flex-direction:column;gap:6px}
+.nb-meta{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:12px;color:var(--muted)}
+.del{background:none;border:0;padding:2px 4px;cursor:pointer;font-size:12px;color:var(--muted)}
+.del:hover,.del[data-armed="1"]{color:var(--ink);text-decoration:underline}
+.cards{display:flex;flex-direction:column}
+.card-e{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);gap:12px;padding:6px 0;border-top:1px dashed var(--line);background:none;border-left:0;border-right:0;border-bottom:0;text-align:left;width:100%;cursor:default}
+.card-e:first-child{border-top:0}
+.card-e .en{font-family:var(--font-display);font-size:15px;transition:filter .15s}
+.card-e .zh{color:var(--muted);font-size:14px}
+.quiz .card-e{cursor:pointer}
+.quiz .card-e .en{filter:blur(6px)}
+.quiz .card-e.revealed .en{filter:none}
+@media (max-width:520px){.card-e{grid-template-columns:1fr;gap:0}}
+.card-g{font-size:13px;display:flex;gap:6px;align-items:baseline;flex-wrap:wrap;padding-top:4px}
+.card-s{font-size:13px;color:var(--muted);padding-top:2px}
+.card-s b{color:var(--ink);font-weight:500}
+.empty{border:1px dashed var(--line);border-radius:10px;padding:16px;color:var(--muted);font-size:14px}
+.btn.ghost[aria-expanded="true"]{border-color:var(--accent);color:var(--accent)}
+
+/* export / import */
+.sync{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px;display:flex;flex-direction:column;gap:10px}
+.sync textarea{width:100%;height:132px;resize:vertical;font-family:var(--font-mono);font-size:16px;line-height:1.5;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:10px 12px}
+.sync textarea[readonly]{background:var(--sunk)}
+.sync textarea::placeholder{color:var(--muted);opacity:.8;font-size:13px}
+/* iOS zooms into any focused field under 16px; the prompt box gets focused when copy falls back to selecting */
+@media (hover:none) and (pointer:coarse){#out{font-size:16px}}
+
+/* reading sections */
+.steps{margin:0;padding-left:1.4em;display:flex;flex-direction:column;gap:6px}
+.bullets{margin:0;padding-left:1.2em;display:flex;flex-direction:column;gap:6px}
+.prose{display:flex;flex-direction:column;gap:10px;max-width:40em}
+.aside{font-size:14px;color:var(--muted);border-left:2px solid var(--line);padding-left:12px}
+.acts{margin:0;padding-left:1.4em;display:flex;flex-direction:column;gap:8px}
+.acts b{font-family:var(--font-display)}
+.cast{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px 20px}
+@media (max-width:620px){.cast{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.cast div{display:flex;flex-direction:column;gap:2px;min-width:0}
+.cast b{font-family:var(--font-display);font-size:16px}
+.cast span{font-size:13px;color:var(--muted);line-height:1.5}
+.table-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:10px;background:var(--surface)}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th{text-align:left;font-weight:600;font-size:12px;color:var(--muted);padding:10px 12px;border-bottom:1px solid var(--line);white-space:nowrap}
+td{padding:10px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+tr:last-child td{border-bottom:0}
+td.u{font-family:var(--font-mono);font-size:12.5px;white-space:nowrap;font-variant-numeric:tabular-nums}
+td.group{background:var(--sunk);font-size:12px;color:var(--muted);padding:6px 12px;font-weight:600}
+.lv-btn{background:none;border:0;padding:0;cursor:pointer;text-align:left;white-space:nowrap;font-weight:600}
+.lv-btn span{font-family:var(--font-mono);font-size:12px;color:var(--accent);margin-right:6px;font-weight:500}
+.lv-btn:hover{color:var(--accent)}
+footer{font-size:12px;color:var(--muted)}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;scroll-behavior:auto!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <p class="eyebrow">English Grammar in Use · 第 5 版对照</p>
+    <h1>口语阶梯</h1>
+    <p class="lede">你来演主角 Leo，跟着他过一年：上海的外企、温哥华外派、落基山独行。每一集先演，再重演，三集之后复习一次。练完把复习卡存下来，下次 AI 会先考你。</p>
+  </header>
+
+  <div class="principles">
+    <div><b>宁低勿高</b><span>每一级的标准是说起来不费劲。觉得难，就往回退一级。</span></div>
+    <div><b>没有任务</b><span>不打卡，不考核。30 分钟只是参考，一集演几遍都行。</span></div>
+    <div><b>先回忆，再开口</b><span>每次开头 AI 先用中文提示，让你自己想起英文，比重读一遍记得牢。</span></div>
+  </div>
+
+  <section id="builder" aria-labelledby="h-builder">
+    <h2 id="h-builder">今天练什么</h2>
+    <div class="seg" id="mode" role="group" aria-label="练习方式">
+      <button type="button" data-mode="story" aria-pressed="true">主线故事</button>
+      <button type="button" data-mode="free" aria-pressed="false">自由聊</button>
+    </div>
+    <div class="stair" id="stair" role="group" aria-label="选择级别"></div>
+
+    <div class="field" id="ep-field">
+      <span class="field-label">这一级的三集</span>
+      <div class="eps" id="eps" role="group" aria-label="选择一集"></div>
+    </div>
+
+    <div class="field" id="kind-field">
+      <span class="field-label">这次是</span>
+      <div class="seg" id="kinds" role="group" aria-label="练习类型">
+        <button type="button" data-kind="new" aria-pressed="true">新演</button>
+        <button type="button" data-kind="replay" aria-pressed="false">重演</button>
+        <button type="button" data-kind="review" aria-pressed="false">本级复习</button>
+      </div>
+      <p class="muted small" id="kind-note"></p>
+    </div>
+
+    <div id="card"></div>
+
+    <div class="field" id="topic-field" hidden>
+      <span class="field-label">话题</span>
+      <div class="topics" id="topics" role="group" aria-label="选择话题"></div>
+      <input id="custom" type="text" placeholder="写一个你想聊的话题，比如：我最近在读的书" hidden>
+    </div>
+
+    <div class="field">
+      <span class="field-label">选项</span>
+      <div class="options">
+        <label><input type="checkbox" id="opt-zh" checked> 卡住时可以说中文</label>
+        <label><input type="checkbox" id="opt-easy"> 今天想轻松点</label>
+      </div>
+    </div>
+
+    <div class="prompt">
+      <div class="prompt-head">
+        <div>
+          <h3>提示词</h3>
+          <p class="hint">粘贴到 ChatGPT 新对话里发送，然后在同一个对话里点语音按钮。</p>
+        </div>
+        <button class="btn" id="copy" type="button">复制提示词</button>
+      </div>
+      <textarea id="out" readonly spellcheck="false" aria-label="生成的提示词"></textarea>
+      <p class="status" id="copy-status" aria-live="polite"></p>
+    </div>
+
+    <div class="save" id="save">
+      <h3>练完之后：存复习卡</h3>
+      <p class="hint">在 ChatGPT 里退出语音，打字 wrap up。它会在最后给一个代码块，点代码块的复制按钮，贴到下面。</p>
+      <textarea id="paste" spellcheck="false" aria-label="贴入复习卡" placeholder="E: I've never been to Xi'an | 我从没去过西安&#10;G: 现在完成时 | Unit 7&#10;S: I have went there | I've been there"></textarea>
+      <div class="save-row">
+        <button class="btn" id="save-btn" type="button" disabled>存到第 1 集</button>
+        <span class="status" id="save-status" aria-live="polite"></span>
+      </div>
+    </div>
+  </section>
+
+  <section id="notebook" aria-labelledby="h-nb">
+    <div class="nb-head">
+      <h2 id="h-nb">复习本</h2>
+      <div class="nb-tools">
+        <label><input type="checkbox" id="nb-quiz"> 遮住英文自测</label>
+        <button type="button" class="btn ghost" id="nb-scope">看全部级别</button>
+        <button type="button" class="btn ghost" id="nb-export" aria-expanded="false" aria-controls="exp-panel">导出</button>
+        <button type="button" class="btn ghost" id="nb-import" aria-expanded="false" aria-controls="imp-panel">导入</button>
+      </div>
+    </div>
+    <p class="muted small" id="nb-note"></p>
+    <div class="sync" id="exp-panel" hidden>
+      <p class="hint">下面是这台设备上的全部复习卡和练习设置。复制后，在另一台设备打开本页，点「导入」粘贴进去。</p>
+      <textarea id="exp-out" readonly spellcheck="false" aria-label="导出的数据"></textarea>
+      <div class="save-row">
+        <button class="btn" id="exp-copy" type="button">复制</button>
+        <span class="status" id="exp-status" aria-live="polite"></span>
+      </div>
+    </div>
+    <div class="sync" id="imp-panel" hidden>
+      <p class="hint">粘贴另一台设备「导出」的内容。已有的复习卡不会重复，也不会被删掉；练习设置会换成导入的。</p>
+      <textarea id="imp-in" spellcheck="false" autocapitalize="off" autocomplete="off" aria-label="粘贴要导入的数据" placeholder="把导出的整段文字粘贴到这里"></textarea>
+      <div class="save-row">
+        <button class="btn" id="imp-btn" type="button" disabled>导入</button>
+        <span class="status" id="imp-status" aria-live="polite"></span>
+      </div>
+    </div>
+    <div class="nb" id="nb"></div>
+  </section>
+
+  <section aria-labelledby="h-how">
+    <h2 id="h-how">怎么用</h2>
+    <ol class="steps">
+      <li>选好一集和这次的类型（新演、重演或本级复习），点「复制提示词」。</li>
+      <li>打开 ChatGPT，新建一个对话，粘贴后发送。它回了第一句之后，在同一个对话里点语音按钮，开始说。</li>
+      <li>主线的一次练习分三段：先回忆，再演场景，最后聊你自己或者复述。想提前进入下一段，说 “next part”。</li>
+      <li>想结束时退出语音，在对话框里打字 “wrap up”。它会给一段中文总结和一个代码块。</li>
+      <li>复制代码块，贴到本页「存复习卡」，点保存。下次重演或复习时，提示词会自动带上这些卡，AI 开头会先考你。</li>
+    </ol>
+    <p class="aside">AI 说得太快或太长，直接说 “slower” 或 “shorter”。一集演得不满意，就再演一遍，每次走向都会不一样。想要更细的反馈，可以把对话文字复制给 Claude 逐句看。</p>
+  </section>
+
+  <section aria-labelledby="h-up">
+    <h2 id="h-up">节奏和往上走</h2>
+    <div class="prose">
+      <p>参考节奏：每一集先<b>新演</b>一次，隔一两天<b>重演</b>一次；三集都演过以后，做一次<b>本级复习</b>。这样一级大约 7 次练习，按每周四五次算，一级一到两周，全部走完大约四五个月。这只是估算，不是期限。</p>
+    </div>
+    <ul class="bullets">
+      <li>没有通关条件，也不用打卡。</li>
+      <li>觉得简单，可以跳过重演，直接往上走；觉得吃力，就多演几遍，或者回到上一级。</li>
+      <li>回答时不太需要停下来想、能连着说三四句，就可以试试下一级。</li>
+      <li>状态不好的日子，勾上「今天想轻松点」。隔了几天没练，回来从觉得舒服的地方开始。</li>
+    </ul>
+    <p class="aside">为什么要重演：同一个口语任务重复做，第二次往往比第一次更流利、更准确，因为内容已经熟了，注意力才腾得出来管表达。为什么开头要考：自己想起来比再看一遍记得牢，隔几天再想一次又会更牢。新演的开头也会抽两三张更早的卡，旧的表达就不会慢慢丢掉。</p>
+  </section>
+
+  <section aria-labelledby="h-story">
+    <h2 id="h-story">故事设定</h2>
+    <p class="prose">主角 Leo Chen，二十八九岁的中国程序员，喜欢徒步和拍照。你演 Leo，AI 演其他所有人。故事分四段：</p>
+    <ol class="acts">
+      <li><b>上海</b>（Lv1–3）进入加拿大科技公司 Clearwater 的上海办公室，认识同事，三个月后得到去温哥华外派半年的机会。</li>
+      <li><b>温哥华</b>（Lv4–7）准备出发，和室友合租，适应新城市，第一次独自徒步就出了状况。</li>
+      <li><b>落基山</b>（Lv8–9）请两周假一个人开车去班夫和贾斯珀，认识摄影师 Anna，碰上山火封路。</li>
+      <li><b>最后几周</b>（Lv10–11）回到办公室讨论问题、处理线上故障、决定去留，最后做一次分享。</li>
+    </ol>
+    <div class="cast">
+      <div><b>Maya</b><span>上海的组长，加拿大人，温和直接</span></div>
+      <div><b>Tom</b><span>上海的英国同事，爱开玩笑</span></div>
+      <div><b>Priya</b><span>上海的同事，做事有条理，爱吃</span></div>
+      <div><b>Daniel</b><span>温哥华的经理，冷静，爱提问</span></div>
+      <div><b>Jake</b><span>温哥华的室友，热爱户外，话多</span></div>
+      <div><b>Anna</b><span>旅途中认识的摄影师</span></div>
+    </div>
+  </section>
+
+  <section aria-labelledby="h-eps">
+    <h2 id="h-eps">整条主线</h2>
+    <p class="muted">33 集，每级 3 集，外加每级一次复习。点集数可以直接选中。</p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>集</th><th>标题</th><th>内容</th></tr></thead>
+        <tbody id="toc"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section aria-labelledby="h-book">
+    <h2 id="h-book">书和嘴怎么配合</h2>
+    <div class="prose">
+      <p>Murphy 在前言里说，这本书的单元不按难度排列，也不打算让人从头学到尾。按阶梯跳着看完全没问题。</p>
+      <p>两个方向都可以。书上看完某一级的单元，就去口语里用用；口语先练到某一级，AI 会在对话里先示范这些说法，听熟了再翻书会顺很多。</p>
+      <p>Lv1 到 Lv5 基本对应书的前 37 个单元，顺序也一致。从 Lv6 开始会跳到书的后半部分。</p>
+      <p>嘴比书慢两三级很正常。书靠理解，嘴靠熟练，熟练只能靠多说。</p>
+    </div>
+  </section>
+
+  <section aria-labelledby="h-map">
+    <h2 id="h-map">整张阶梯</h2>
+    <p class="muted">点级别名可以直接选中那一级。</p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>级别</th><th>能做到什么</th><th>Murphy 单元</th></tr></thead>
+        <tbody id="map"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section aria-labelledby="h-parts">
+    <h2 id="h-parts">零件单元</h2>
+    <p class="muted">这些单元不挂在某一级上，每一级都会碰到。复习卡里提到哪个，就看哪个。</p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>内容</th><th>单元</th><th>什么时候看</th></tr></thead>
+        <tbody>
+          <tr><td>可数和不可数</td><td class="u">69–71</td><td>much / many、加不加 s 拿不准时</td></tr>
+          <tr><td>a / an / the</td><td class="u">72–78</td><td>复习卡提到冠词时</td></tr>
+          <tr><td>复数、名词组合、所有格</td><td class="u">79–81</td><td>复数或 ’s 用错时</td></tr>
+          <tr><td>代词和限定词</td><td class="u">82–91</td><td>some / any、all / both / each 用错时</td></tr>
+          <tr><td>语序</td><td class="u">109–110</td><td>副词、时间、地点放错位置时</td></tr>
+          <tr><td>时间介词</td><td class="u">121–122</td><td>at / on / in 加时间用错时</td></tr>
+          <tr><td>地点介词和 by</td><td class="u">123–128</td><td>at / on / in 加地点、to / into 用错时</td></tr>
+          <tr><td>介词搭配</td><td class="u">129–136</td><td>interested in、depend on 这类搭配</td></tr>
+          <tr><td>短语动词</td><td class="u">137–145</td><td>想学 figure out、give up 这类说法时</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <footer>单元编号按 Raymond Murphy《English Grammar in Use》第 5 版（Cambridge, 2019）。故事中的公司和人物均为虚构。</footer>
+</div>
+
+<script>
+const LEVELS = [
+  { id:1, short:`眼前日常`, name:`眼前和日常`, en:`Here and now`,
+    can:`用一两句简单的话，说现在在做什么、平时做什么、喜欢什么。`,
+    canEn:`talk about what I do, what I'm doing now and what I like, in one or two simple sentences`,
+    units:[[`1–4`,`一般现在时 / 现在进行时`],[`17`,`have / have got`]],
+    focus:`present simple and present continuous (I work / I'm working), and have got`,
+    ask:`Ask mostly yes/no or either/or questions ("Do you...?", "Is it ... or ...?") so I can answer with one short sentence.`,
+    len:`One or two short sentences from me is enough.`,
+    frames:[`I usually...`,`Right now I'm...`,`I like ... because...`,`I don't really...`],
+    topics:`今天在干嘛、周末一般做什么、喜欢吃什么`,
+    topicsEn:`what I'm doing today, my weekends, food I like` },
+  { id:2, short:`讲昨天`, name:`讲昨天的事`, en:`What happened`,
+    can:`按顺序讲昨天或上周末的三四件事，还能反问对方一句。`,
+    canEn:`tell three or four things that happened yesterday or last weekend, in order, and ask a simple question back`,
+    units:[[`5`,`一般过去时`],[`6`,`过去进行时`],[`49`,`疑问句`],[`121`,`at / on / in（时间）`]],
+    focus:`past simple (went, saw, didn't...), a little past continuous, time words (at 7, on Saturday, in the morning), and asking simple questions back`,
+    ask:`Ask simple what / where / when / who questions about what I did. Now and then, pause so I can ask you a question back.`,
+    len:`Two or three sentences from me is great. Help me link them with "first", "then" and "after that".`,
+    frames:[`Yesterday I...`,`First..., then...`,`After that, I...`,`What about you? What did you do...?`],
+    topics:`上周末、最近一次徒步、昨天吃了什么`,
+    topicsEn:`last weekend, my last hike, what I ate yesterday` },
+  { id:3, short:`聊经历`, name:`聊经历`, en:`Experiences`,
+    can:`聊去过哪、做过什么、最近一直在忙什么，分清 have done 和 did。`,
+    canEn:`talk about my experiences and what I have been doing lately, switching correctly between "have done" and "did"`,
+    units:[[`7–8`,`现在完成时`],[`9–10`,`现在完成进行时`],[`11–12`,`how long / for / since`],[`13–14`,`完成时和过去时`],[`111`,`still / yet / already`]],
+    focus:`present perfect (Have you ever...? I've never... I've just / already... not ... yet), present perfect continuous, for / since, then past simple for details ("I've been to Xi'an. I went there in 2023.")`,
+    ask:`Start with "Have you ever...?" or "What have you been doing lately?", then follow up with past-simple questions about the details ("When did you...?", "How was it?").`,
+    len:`Two or three sentences from me is great.`,
+    frames:[`I've never...`,`I've been to... I went there...`,`I've been ...-ing since...`,`Not yet, but I...`],
+    topics:`去过的城市、试过的新东西、最近在忙什么`,
+    topicsEn:`places I've been to, new things I've tried, what I've been busy with lately` },
+  { id:4, short:`说计划`, name:`说计划`, en:`Plans`,
+    can:`说周末和假期的安排，对事情做简单的预测。`,
+    canEn:`talk about my plans and arrangements and make simple predictions`,
+    units:[[`19–20`,`进行时表将来 / be going to`],[`21–23`,`will / shall / going to`],[`24`,`will be doing / will have done`],[`25`,`when I do / if and when`]],
+    focus:`be going to, present continuous for arrangements (I'm meeting ... on Friday), will for quick decisions and predictions, and "when I..., I'll..."`,
+    ask:`Ask about my plans and what I think will happen ("What are you going to...?", "Are you doing anything on...?", "What do you think will...?").`,
+    len:`Two to four sentences from me.`,
+    frames:[`I'm going to...`,`I'm meeting ... on...`,`I think it'll...`,`When I..., I'll...`],
+    topics:`下次徒步、假期安排、年底前想做的事`,
+    topicsEn:`my next hike, holiday plans, things I want to do before the end of the year` },
+  { id:5, short:`建议猜测`, name:`建议、规则和猜测`, en:`Advice and possibility`,
+    can:`给别人出主意、讲规则，用 might / must 做猜测。`,
+    canEn:`give advice, talk about rules and make guesses`,
+    units:[[`26–27`,`can / could / be able to`],[`28–30`,`must / can't / may / might`],[`31–32`,`have to / must / needn't`],[`33–35`,`should / had better / it's time`],[`37`,`请求、提议和邀请`]],
+    focus:`should / had better, have to / don't have to, might / must / can't for guessing, could for suggestions, and polite requests (Could you...? Would you...?)`,
+    ask:`Give me small problems or situations and ask what I'd advise, or ask me to guess ("What should he do?", "Why do you think...?").`,
+    len:`Three or four sentences from me.`,
+    frames:[`You should...`,`You don't have to...`,`It might be because...`,`It must be...`,`Could you...?`],
+    topics:`给徒步新手的建议、相机参数怎么选、帮朋友出主意`,
+    topicsEn:`advice for a first-time hiker, choosing camera settings, helping a friend make a decision` },
+  { id:6, short:`描述比较`, name:`描述和比较`, en:`Describe and compare`,
+    can:`描述一个人、地方或东西，比较两个选项，说清更喜欢哪个。`,
+    canEn:`describe people, places and things, compare two options and say which I prefer`,
+    units:[[`92–94`,`定语从句 who / that / where`],[`98–101`,`形容词和副词`],[`102–104`,`so / such / enough / too`],[`105–108`,`比较级和最高级`],[`117–118`,`like / as / as if`]],
+    focus:`comparatives and superlatives (better, more ... than, not as ... as, the best ... I've ever...), too / enough, so / such, -ed / -ing adjectives (bored / boring), simple relative clauses (a place that..., someone who...), and looks like / as if`,
+    ask:`Ask me to describe things and to compare two options ("Which do you prefer, A or B? Why?").`,
+    len:`Three to five sentences from me.`,
+    frames:[`A is ... than B, but...`,`It's not as ... as...`,`It's the best ... I've ever...`,`It's a place where...`,`It was too ... to...`],
+    topics:`两条徒步路线、两个编程工具、两部剧、宁波和大连`,
+    topicsEn:`two hiking routes, two programming tools, two TV shows, Ningbo and Dalian` },
+  { id:7, short:`讲故事`, name:`讲一个故事`, en:`Telling a story`,
+    can:`讲一个有背景、有经过、有结果的小故事。`,
+    canEn:`tell a short story with a background, what happened and how it ended`,
+    units:[[`6`,`过去进行时（复习）`],[`15–16`,`过去完成时`],[`18`,`used to`],[`61`,`be / get used to`],[`65–67`,`形容词 + to / see somebody do`],[`116`,`as`],[`119–120`,`while / during / by the time`]],
+    focus:`past continuous for background (I was ... when...), past perfect (had already...), used to, and while / as / by the time`,
+    ask:`Ask me to tell a story, then ask questions that bring out the background and the order of events ("What were you doing when...?", "Had you ... before?", "What happened in the end?").`,
+    len:`A short story of four to six sentences.`,
+    frames:[`I was ... when...`,`By the time we got there, it had already...`,`I used to..., but now...`,`While I was..., I saw...`],
+    topics:`一次难忘的徒步、一次出状况的经历、小时候的事`,
+    topicsEn:`a hike I remember well, a time something went wrong, something from my childhood` },
+  { id:8, short:`假如`, name:`假如`, en:`What if`,
+    can:`聊假设的情况、愿望和后悔。`,
+    canEn:`talk about imaginary situations, wishes and regrets`,
+    units:[[`36`,`would`],[`38–40`,`if I do / if I did / if I had done`],[`41`,`wish`],[`114`,`in case`],[`115`,`unless / as long as`]],
+    focus:`second conditional (If I had..., I'd...), third conditional (If I had known..., I would have...), I wish..., and unless / as long as / in case`,
+    ask:`Ask hypothetical questions ("What would you do if...?", "If you could..., would you...?", "Do you wish...?").`,
+    len:`Three to five sentences from me.`,
+    frames:[`If I had..., I'd...`,`If I had known..., I would have...`,`I wish I could...`,`As long as..., I...`],
+    topics:`如果有一年假期、如果重新选专业、如果能住在任何城市`,
+    topicsEn:`having a year off, choosing my major again, living in any city I want` },
+  { id:9, short:`转述新闻`, name:`转述和新闻`, en:`Reporting`,
+    can:`转述一条新闻，或者别人说过的话。`,
+    canEn:`report a piece of news or what someone else said`,
+    units:[[`42–44`,`被动语态`],[`45`,`it is said that...`],[`46`,`have something done`],[`47–48`,`间接引语`],[`50`,`间接疑问句`]],
+    focus:`the passive (was released, is being tested, has been announced), reported speech (They said that..., He told me..., She asked if...), and indirect questions (Do you know when...?)`,
+    ask:`Ask what I've read or heard recently and get me to report it ("What did they say?", "Who was it made by?", "Do you know why...?").`,
+    len:`Four to six sentences from me.`,
+    frames:[`I read that...`,`It was announced that...`,`They said (that)...`,`It's said to be...`,`Do you know whether...?`],
+    topics:`一条 AI 新闻、朋友讲的事、新产品发布`,
+    topicsEn:`a piece of AI news, something a friend told me, a new product launch` },
+  { id:10, short:`观点理由`, name:`观点和理由`, en:`Opinions`,
+    can:`说出自己的观点，给两个理由，回应不同的看法。`,
+    canEn:`give an opinion with two reasons and respond to a different view`,
+    units:[[`51–52`,`助动词 / 反意疑问句`],[`53–58`,`动词 + -ing / to`],[`59`,`prefer / would rather`],[`63–64`,`worth -ing / so that`],[`112–113`,`even / although / despite`]],
+    focus:`although / even though / despite, so that, I'd rather ... than..., it's worth -ing, verb patterns (I enjoy doing / I decided to...), and short ways to agree or disagree (So do I. / I don't think so. / ..., isn't it?)`,
+    ask:`Ask for my opinion, then politely disagree once so that I have to defend or adjust my view.`,
+    len:`Four to six sentences from me.`,
+    frames:[`I think..., because...`,`Although..., I still think...`,`I'd rather ... than...`,`That's a fair point, but...`,`It's worth ...-ing`],
+    topics:`AI 会不会取代程序员、远程办公、大城市还是小城市`,
+    topicsEn:`whether AI will replace programmers, remote work, living in a big city or a small one` },
+  { id:11, short:`讲清楚`, name:`把事情讲清楚`, en:`Explaining`,
+    can:`把一个问题、流程或决定讲清楚，像在会上同步进展。`,
+    canEn:`explain a problem, a process or a decision clearly, like giving an update in a meeting`,
+    units:[[`60`,`介词 + -ing`],[`62`,`动词 + 介词 + -ing`],[`68`,`-ing 从句`],[`95–97`,`补充说明的从句 / -ing 和 -ed 短语`],[`137–145`,`短语动词（挑常用的）`]],
+    focus:`structuring an explanation (The problem was... / What we did was... / In the end...), extra-information clauses (..., which meant that...), -ing clauses, by + -ing, and common phrasal verbs (figure out, set up, run into, come up with)`,
+    ask:`Act like a curious colleague or friend. Ask me to explain how something works or what went wrong, and ask follow-up questions when something isn't clear.`,
+    len:`A structured explanation of about one to two minutes.`,
+    frames:[`The problem was that...`,`What we did was...`,`..., which meant that...`,`By ...-ing, we...`,`We ran into..., so we...`],
+    topics:`一个 bug 是怎么查出来的、怎么规划徒步路线、某个相机功能怎么用`,
+    topicsEn:`how I tracked down a bug, how I plan a hiking route, how a camera feature works` }
+];
+
+const ACTS = { 1:`上海`, 2:`上海`, 3:`上海`, 4:`温哥华`, 5:`温哥华`, 6:`温哥华`, 7:`温哥华`, 8:`落基山`, 9:`落基山`, 10:`最后几周`, 11:`最后几周` };
+
+const EPISODES = [
+  { lv:1, title:`上班第一天`, en:`First day`,
+    zh:`在上海办公室报到，组长 Maya 带他参观。`,
+    scene:`It's Leo's first morning at Clearwater Tech's Shanghai office. Maya, his new team lead, meets him at reception and shows him around.`,
+    roles:`Maya`,
+    goals:[`introduce yourself (name, hometown, job)`,`answer questions about what you usually do and what you like`,`ask Maya one simple question about the team`],
+    real:`my own first day at a job or school, and what I usually do on a workday`,
+    sum:`Leo started his new job at Clearwater Tech in Shanghai. His team lead Maya showed him around.` },
+  { lv:1, title:`第一顿午饭`, en:`Lunch with Tom and Priya`,
+    zh:`和 Tom、Priya 去吃面，点菜，聊口味。`,
+    scene:`Tom and Priya take Leo to a small noodle place near the office. They're looking at the menu and chatting.`,
+    roles:`Tom, Priya and the waiter`,
+    goals:[`order your food`,`say what you like and don't like to eat`,`ask them what they usually have for lunch`],
+    real:`food I like and what I usually eat on workdays`,
+    sum:`Leo had his first lunch with Tom and Priya at a noodle place, and they talked about food.` },
+  { lv:1, title:`周五茶水间`, en:`Friday in the kitchen`,
+    zh:`茶水间和 Tom 聊手头的事和周末，听说下周团队徒步。`,
+    scene:`It's Friday afternoon. Leo is making tea in the office kitchen when Tom comes in and asks what he's working on and what he does at weekends. Near the end, Tom mentions a team hike next Saturday.`,
+    roles:`Tom`,
+    goals:[`say what you're working on this week`,`describe a normal weekend`,`ask Tom about his weekends`],
+    real:`what I'm doing these days and what a normal weekend looks like for me`,
+    sum:`Leo chatted with Tom about work and weekends, and Tom told him about a team hike next Saturday.` },
+  { lv:2, title:`周一的问候`, en:`Monday catch-up`,
+    zh:`周一早上，Maya 问他周末做了什么。`,
+    scene:`Monday morning. Maya stops by Leo's desk and asks about his weekend.`,
+    roles:`Maya`,
+    goals:[`tell three or four things you did at the weekend, in order`,`say when and where`,`ask Maya about her weekend`],
+    real:`what I did last weekend`,
+    sum:`On Monday, Leo told Maya about his weekend and asked about hers.` },
+  { lv:2, title:`迟到的早上`, en:`A bad morning`,
+    zh:`地铁停运、手机没电，迟到四十分钟，跟 Priya 讲经过。`,
+    scene:`Leo arrives at the office forty minutes late. The metro stopped and his phone died. Priya asks him what happened.`,
+    roles:`Priya`,
+    goals:[`explain what happened, step by step`,`use time words (at 8:15, after that, in the end)`,`say sorry in a simple way`],
+    real:`a morning when something went wrong for me`,
+    sum:`Leo was late one morning because the metro stopped and his phone died, and he told Priya the whole story.` },
+  { lv:2, title:`团建徒步之后`, en:`After the team hike`,
+    zh:`Tom 没去团建徒步，Leo 给他讲那天的经过。`,
+    scene:`It's the Monday after the team hike in the hills near Hangzhou. Tom couldn't go, and he wants to hear everything.`,
+    roles:`Tom`,
+    goals:[`describe the day: when you left, where you went, what you saw and ate`,`answer Tom's questions`,`ask him why he didn't come`],
+    real:`a recent trip or day out I had`,
+    sum:`Leo told Tom about the team hike near Hangzhou, which Tom had missed.` },
+  { lv:3, title:`你去过哪`, en:`Have you ever...?`,
+    zh:`午饭时大家比谁去过的地方多。`,
+    scene:`At a team lunch, Priya and Tom start comparing places they have been to, and they ask Leo about his travels.`,
+    roles:`Priya and Tom`,
+    goals:[`say where you have and haven't been`,`add details with the past simple (when, who with, how it was)`,`ask them "Have you ever...?"`],
+    real:`places I've been to, and a place I've never been but want to go`,
+    sum:`Over lunch, Leo, Priya and Tom talked about places they had been to.` },
+  { lv:3, title:`三个月一对一`, en:`Three-month check-in`,
+    zh:`入职三个月，和 Maya 一对一复盘，她提到温哥华的机会。`,
+    scene:`Leo has been at Clearwater for three months. Maya has a one-on-one with him about how it's going. At the end, she mentions a six-month assignment in the Vancouver office.`,
+    roles:`Maya`,
+    goals:[`say what you have done and learned so far`,`say what you've been working on recently`,`say what you haven't done yet`],
+    real:`something I've been learning or working on recently`,
+    sum:`In a three-month check-in, Maya asked Leo how things were going and told him about a six-month assignment in Vancouver.` },
+  { lv:3, title:`视频面谈`, en:`Video call with Vancouver`,
+    zh:`和温哥华的经理 Daniel 视频面谈，拿到外派机会。`,
+    scene:`Leo has a video call with Daniel, the manager of the Vancouver office, to talk about the assignment.`,
+    roles:`Daniel`,
+    goals:[`talk about your experience (how long you've done things, for / since)`,`say whether you've ever lived or travelled abroad`,`ask Daniel one or two questions about the team`],
+    real:`how long I've been doing my job, or something I've always wanted to do`,
+    sum:`Leo had a video call with Daniel from the Vancouver office and got the six-month assignment.` },
+  { lv:4, title:`出发前的计划`, en:`Planning the move`,
+    zh:`出发前两周，Priya 帮他理清行程和要带的东西。`,
+    scene:`Two weeks before Leo leaves, Priya helps him make a plan over coffee: flights, packing and where he's going to live.`,
+    roles:`Priya`,
+    goals:[`say what you're going to do before you leave`,`give arrangements with dates (I'm flying on...)`,`make a few predictions about life in Vancouver`],
+    real:`my plans for the next few weeks or months`,
+    sum:`Priya helped Leo plan his move: his flight, what to pack and where he would live.` },
+  { lv:4, title:`送别饭`, en:`Farewell dinner`,
+    zh:`团队给他饯行，大家问他到了那边的打算。`,
+    scene:`The team takes Leo out for a farewell dinner. Everyone asks about his plans in Vancouver, and Tom makes him promise a few things.`,
+    roles:`Maya, Tom and Priya`,
+    goals:[`talk about your plans in Vancouver`,`make promises and quick decisions with will (I'll send you photos)`,`predict how things will be`],
+    real:`something I'm planning or looking forward to`,
+    sum:`The Shanghai team had a farewell dinner for Leo, and he promised to send them photos from Vancouver.` },
+  { lv:4, title:`起飞之前`, en:`Before the flight`,
+    zh:`起飞前给未来的室友 Jake 打电话，约好落地怎么碰头。`,
+    scene:`Leo is at the airport in Shanghai. He calls Jake, his future flatmate in Vancouver, to arrange how they'll meet when he lands.`,
+    roles:`Jake`,
+    goals:[`tell Jake your flight details and when you'll arrive`,`arrange where and how you'll meet (I'll be waiting at...)`,`say what you'll do when you get there`],
+    real:`how I usually plan a trip, and my next trip`,
+    sum:`Before his flight, Leo called his new flatmate Jake and arranged to meet at Vancouver airport.` },
+  { lv:5, title:`合租的规矩`, en:`House rules`,
+    zh:`到温哥华第一晚，Jake 讲合租规矩。`,
+    scene:`It's Leo's first evening in the flat. Jake explains how things work: rubbish, the kitchen, guests and quiet hours.`,
+    roles:`Jake`,
+    goals:[`ask what you have to and don't have to do`,`make polite requests (Could I...? Is it OK if...?)`,`suggest something (We could...)`],
+    real:`my own home: rules I have, or things I'd want a flatmate to know`,
+    sum:`On his first evening in Vancouver, Jake explained the house rules and Leo asked what he needed to know.` },
+  { lv:5, title:`总部第一周`, en:`First week at HQ`,
+    zh:`总部第一周，Daniel 给建议，Leo 观察到一些不同。`,
+    scene:`It's Leo's first week at the Vancouver office. Daniel gives him some tips, and Leo notices things that are different, like everyone leaving at 4:30 on Fridays.`,
+    roles:`Daniel`,
+    goals:[`ask for advice (Should I...?)`,`guess the reasons for things (It might be because... It must be...)`,`respond to Daniel's suggestions`],
+    real:`things that are different between places I've lived or worked`,
+    sum:`In his first week at the Vancouver office, Daniel gave Leo tips, and Leo noticed a few cultural differences.` },
+  { lv:5, title:`买装备`, en:`The outdoor shop`,
+    zh:`去户外店买冲锋衣和登山鞋，店员给建议。`,
+    scene:`Leo wants to start hiking around Vancouver, so he goes to an outdoor shop to buy a rain jacket and boots. The shop assistant gives him advice.`,
+    roles:`a shop assistant`,
+    goals:[`explain what you need`,`ask what you should buy and what you don't need`,`ask polite questions (Could I try...?)`],
+    real:`outdoor gear I have, or advice I'd give a new hiker`,
+    sum:`Leo bought a rain jacket and boots and got advice about hiking around Vancouver.` },
+  { lv:6, title:`新街区`, en:`The neighbourhood`,
+    zh:`住了一个月，和 Jake 比较温哥华和上海。`,
+    scene:`After a month, Jake asks Leo how he likes the neighbourhood and how Vancouver compares with Shanghai.`,
+    roles:`Jake`,
+    goals:[`describe your neighbourhood (shops, streets, people)`,`compare Vancouver and Shanghai`,`say what you like best and what you miss`],
+    real:`the city I live in now, compared with a place I lived before`,
+    sum:`Leo told Jake what he thought of the neighbourhood and compared Vancouver with Shanghai.` },
+  { lv:6, title:`相机店`, en:`The camera shop`,
+    zh:`去相机店挑风光镜头，两款之间做比较。`,
+    scene:`Leo goes to a camera shop to buy a lens for landscape photos. The assistant shows him two options.`,
+    roles:`a camera shop assistant`,
+    goals:[`describe the kind of photos you want to take`,`compare the two options (lighter, sharper, more expensive)`,`decide and explain which one you prefer`],
+    real:`photos I like to take, or a time I chose between two gadgets`,
+    sum:`Leo compared two lenses in a camera shop and bought one for landscape photos.` },
+  { lv:6, title:`公司百乐餐`, en:`Potluck at work`,
+    zh:`公司百乐餐，介绍自己带的中国菜，认识同事。`,
+    scene:`The Vancouver team has a potluck lunch, and Leo brings a Chinese dish. Colleagues ask about it, and Daniel tells him who's who on the team.`,
+    roles:`Daniel and a couple of colleagues`,
+    goals:[`describe the dish you brought (how it tastes, how it's made)`,`compare dishes`,`describe people with relative clauses (the guy who..., the woman who...)`],
+    real:`a dish I can cook, or the people I work with`,
+    sum:`At the team potluck, Leo talked about the dish he brought and got to know his Vancouver colleagues.` },
+  { lv:7, title:`第一次独自徒步`, en:`The first solo hike`,
+    zh:`第一次独自徒步遇上大雾迷路，回来讲给 Jake 听。`,
+    scene:`Leo went on his first solo hike near Vancouver. Fog came in, he lost the trail, and he got back very late. Now he's telling Jake what happened.`,
+    roles:`Jake`,
+    goals:[`tell the story with a background (It was raining when...), events in order and an ending`,`use the past perfect (I had already...)`,`answer Jake's questions`],
+    real:`a time something didn't go as planned on a trip or day out`,
+    sum:`On his first solo hike, Leo got lost in the fog and came back late. He told Jake the whole story.` },
+  { lv:7, title:`小时候`, en:`Childhood stories`,
+    zh:`去 Daniel 家吃饭，大家讲小时候的事。`,
+    scene:`Daniel invites a few colleagues to dinner at his place, and people start sharing childhood stories.`,
+    roles:`Daniel and his partner`,
+    goals:[`say what you used to do as a child`,`tell one short childhood story`,`ask the others about theirs`],
+    real:`my own childhood: where I grew up and what I used to do`,
+    sum:`At dinner at Daniel's place, everyone shared childhood stories, including Leo.` },
+  { lv:7, title:`钱包找回来了`, en:`The lost wallet`,
+    zh:`和上海的 Priya 视频，讲钱包落在公交上又找回来的经过。`,
+    scene:`Leo has a video call with Priya in Shanghai. He tells her about the day he left his wallet on a bus and how he got it back.`,
+    roles:`Priya`,
+    goals:[`tell the story in order (while..., by the time..., had already...)`,`describe how you felt`,`answer Priya's questions`],
+    real:`a time I lost something, or a lucky moment I had`,
+    sum:`On a video call, Leo told Priya how he lost his wallet on a bus and got it back.` },
+  { lv:8, title:`公路旅行计划`, en:`Planning the road trip`,
+    zh:`请了两周假，打算一个人开车去落基山，和 Jake 商量。`,
+    scene:`Leo has two weeks off and wants to drive to the Rockies. Jake can't come, so Leo will go alone. They talk about the plan and what could go wrong.`,
+    roles:`Jake`,
+    goals:[`say what you would do in different situations (If..., I'd...)`,`plan for problems (in case..., unless..., as long as...)`,`say what you wish you had`],
+    real:`a trip I'd take if I had two weeks off`,
+    sum:`Leo planned a two-week solo road trip to the Rockies. Jake gave him tips but couldn't come.` },
+  { lv:8, title:`订错了营地`, en:`The wrong campsite`,
+    zh:`在班夫订错了营地日期，摄影师 Anna 帮他想办法。`,
+    scene:`In Banff, Leo finds out he booked the campsite for the wrong date. Anna, a photographer staying at the campsite, helps him work out what to do.`,
+    roles:`Anna`,
+    goals:[`talk about regrets (If I had checked..., I would have...)`,`talk about options (If we..., we could...)`,`say what you wish`],
+    real:`a mistake I made and what I would do differently`,
+    sum:`In Banff, Leo had booked the wrong campsite date, and a photographer called Anna helped him sort it out.` },
+  { lv:8, title:`篝火边`, en:`By the campfire`,
+    zh:`篝火边和 Anna 聊“如果可以重新选”。`,
+    scene:`That night, Leo and Anna sit by a campfire and talk about big "what if" questions: work, where to live and how to spend a life.`,
+    roles:`Anna`,
+    goals:[`answer and ask hypothetical questions (What would you do if...?)`,`talk about wishes`,`give reasons for your choices`],
+    real:`if I could live anywhere or do any job, what I would choose`,
+    sum:`By the campfire, Leo and Anna talked about what they would do if they could live anywhere or do any job.` },
+  { lv:9, title:`封路了`, en:`Road closed`,
+    zh:`山火封路，向护林员打听情况，再转述给 Jake。`,
+    scene:`At a visitor centre near Jasper, Leo learns the highway is closed because of a wildfire. He asks a ranger some questions, then calls Jake to tell him what the ranger said.`,
+    roles:`the park ranger, then Jake`,
+    goals:[`ask polite indirect questions (Do you know when...? Could you tell me whether...?)`,`talk about the news with the passive (The road has been closed...)`,`report to Jake what the ranger said`],
+    real:`news I heard recently, or a time my plans changed because of something I couldn't control`,
+    sum:`A wildfire closed the highway near Jasper. Leo got the details from a ranger and passed them on to Jake.` },
+  { lv:9, title:`和 Tom 视频`, en:`Catching up with Tom`,
+    zh:`回到温哥华，和 Tom 视频，互相转述近况。`,
+    scene:`Back in Vancouver after the trip, Leo video-calls Tom in Shanghai. Tom passes on news from the office, and Leo tells him what people said on the trip.`,
+    roles:`Tom`,
+    goals:[`report what other people said (Anna told me that...)`,`react to Tom's news`,`ask about people (Do you know if Maya...?)`],
+    real:`recent news from my friends or family`,
+    sum:`Leo caught up with Tom on a video call: Tom shared office news, and Leo told him about the trip.` },
+  { lv:9, title:`早上的 AI 新闻`, en:`Morning news at the office`,
+    zh:`早上咖啡时间，Leo 转述一条他读到的 AI 新闻。`,
+    scene:`Morning coffee in the Vancouver office. Daniel asks if anyone saw the latest AI news, and Leo shares something he read. (I'll bring a real piece of news I read recently.)`,
+    roles:`Daniel and a colleague`,
+    goals:[`report the news (It was announced that..., They said...)`,`say who did what with the passive (It was developed by...)`,`say what you think about it`],
+    real:`a piece of news I read this week`,
+    sum:`Over coffee, Leo shared a piece of AI news with Daniel and a colleague.` },
+  { lv:10, title:`要不要换工具`, en:`The tool debate`,
+    zh:`组会讨论要不要换新的 AI 编程工具，Leo 发表看法。`,
+    scene:`In a team meeting, the team discusses whether to switch to a new AI coding tool. Daniel asks for Leo's opinion and then argues the other side.`,
+    roles:`Daniel and a colleague`,
+    goals:[`give your opinion with two reasons`,`respond when someone disagrees (That's a fair point, but...)`,`use although / even though`],
+    real:`a tool or app I like or dislike, and why`,
+    sum:`In a team meeting, Leo argued his view on switching to a new AI coding tool.` },
+  { lv:10, title:`远程还是坐班`, en:`Remote or office?`,
+    zh:`午饭时同事争论远程和坐班、大城市和小城市。`,
+    scene:`At lunch, two colleagues argue about remote work versus working in the office, and big-city versus small-town life.`,
+    roles:`two colleagues with opposite views`,
+    goals:[`say what you'd rather do and why`,`agree and disagree politely`,`change your mind a little if they make a good point`],
+    real:`my own view on remote work, or on big-city versus small-city life`,
+    sum:`At lunch, Leo and his colleagues debated remote work and big-city life.` },
+  { lv:10, title:`留下还是回去`, en:`Stay or go home?`,
+    zh:`Daniel 提出让他延长外派，Leo 和 Jake 商量去留。`,
+    scene:`Daniel has offered Leo the chance to stay longer in Vancouver. That evening, Leo talks it through with Jake.`,
+    roles:`Jake`,
+    goals:[`give reasons on both sides (Although..., I...)`,`say what you'd rather do`,`respond to Jake's opinions, then decide or explain why you can't decide yet`],
+    real:`a big decision I've made or am thinking about`,
+    sum:`Daniel offered Leo a longer stay in Vancouver, and Leo talked the decision through with Jake.` },
+  { lv:11, title:`线上故障`, en:`The incident`,
+    zh:`服务挂了一小时，向 Daniel 讲清楚原因和处理过程。`,
+    scene:`A service Leo's team runs went down for an hour last night. Daniel asks Leo to explain what happened.`,
+    roles:`Daniel`,
+    goals:[`explain the problem, what you did and the result, in order`,`use phrases like "The problem was that..." and "..., which meant that..."`,`answer follow-up questions clearly`],
+    real:`a problem I solved at work or in daily life, explained step by step`,
+    sum:`After a one-hour outage, Leo explained to Daniel what had happened and how the team fixed it.` },
+  { lv:11, title:`教新人规划路线`, en:`Teaching route planning`,
+    zh:`新同事想开始徒步，Leo 讲怎么规划安全的路线。`,
+    scene:`A new colleague wants to start hiking and asks Leo how to plan a safe hike in British Columbia.`,
+    roles:`the new colleague`,
+    goals:[`explain the process step by step`,`explain why each step matters`,`use phrasal verbs (check out, set off, turn back)`],
+    real:`something I know how to do well, explained to a beginner`,
+    sum:`Leo explained to a new colleague how to plan a safe hike, step by step.` },
+  { lv:11, title:`最后的分享会`, en:`The final presentation`,
+    zh:`外派半年结束时做分享，之后 Maya 打来电话问他的决定。`,
+    scene:`At the end of his six-month assignment, Leo presents his work to the Vancouver team and answers questions. Afterwards, Maya calls from Shanghai to hear how it went and what he has decided.`,
+    roles:`Daniel and colleagues, then Maya`,
+    goals:[`give a short, clear summary of your work`,`answer questions`,`tell Maya about the experience and your decision`],
+    real:`what I've learned in the last year, and what's next for me`,
+    sum:`Leo gave his final presentation in Vancouver and told Maya what he had decided.` }
+];
+
+const REVIEWS = {
+  1:{ title:`一周之后`, scene:`A week after Leo starts at Clearwater, he goes for an after-work drink with Maya and her friend Ben. Ben asks about Leo's new job, his daily routine and what he likes.`, roles:`Ben (and Maya now and then)` },
+  2:{ title:`周末市集`, scene:`At a weekend market in Shanghai, Leo runs into Lily, Priya's flatmate. She asks what he has been up to, and Leo tells her about his recent days at work and the team hike.`, roles:`Lily` },
+  3:{ title:`老同学`, scene:`Before he leaves Shanghai, Leo has lunch with Kevin, an old university friend who has never worked abroad. Kevin wants to hear everything Leo has done at Clearwater and all the places he has been.`, roles:`Kevin` },
+  4:{ title:`飞机上`, scene:`On the plane to Vancouver, Leo chats with the passenger next to him, a retired teacher called Linda, about his plans for the next six months.`, roles:`Linda` },
+  5:{ title:`新来的实习生`, scene:`A new intern, Mia, has just arrived at the Vancouver office from China. Leo gives her advice about the office, finding a flat, and what she should and shouldn't buy for hiking.`, roles:`Mia (she speaks English with Leo)` },
+  6:{ title:`朋友要来玩`, scene:`Leo's friend Sam from Toronto is thinking about visiting Vancouver. On a video call, Leo describes the city and compares neighbourhoods, food and prices.`, roles:`Sam` },
+  7:{ title:`徒步聚会`, scene:`At a hikers' meetup, Leo meets a group of new people. Rosa, the organiser, gets everyone to share a story from the past few months, and Leo tells a few of his.`, roles:`Rosa and another hiker` },
+  8:{ title:`如果再来一次`, scene:`Back in Vancouver, Jake asks Leo what he would do differently if he did the Rockies trip again, and what he would do with another two weeks off.`, roles:`Jake` },
+  9:{ title:`公司播客`, scene:`Ellie, who runs the company's internal podcast, interviews Leo about his trip, the wildfire and the news he has been following.`, roles:`Ellie, the podcast host` },
+  10:{ title:`团队复盘`, scene:`At a team retro, Daniel asks everyone for honest opinions: what went well in the last six months, what didn't, and what the team should change.`, roles:`Daniel and a colleague` },
+  11:{ title:`给新人的问答`, scene:`On one of Leo's last days, a few new hires invite him for coffee. They ask how things work at the company and what he has learned.`, roles:`two new hires` }
+};
+
+const TWISTS = [
+  `Something small goes wrong in the middle (a phone call, a spilled drink, a mix-up), and Leo has to deal with it.`,
+  `The other person is in a hurry, so Leo has to be quick and clear.`,
+  `A new character joins halfway through, and Leo has to explain things again.`,
+  `The other person misunderstands Leo once, and he has to say it another way.`,
+  `The other person is extra curious and asks more follow-up questions than last time.`,
+  `It's the same situation a week later, and a few things have changed.`
+];
+
+const TOPICS = [
+  { id:`auto`,  label:`随你挑` },
+  { id:`daily`, label:`日常生活`, en:`my daily life: workdays, weekends, home and food` },
+  { id:`hike`,  label:`徒步和户外`, en:`hiking and the outdoors` },
+  { id:`photo`, label:`摄影`, en:`photography` },
+  { id:`food`,  label:`吃的`, en:`food, cooking and eating out` },
+  { id:`tv`,    label:`剧和电影`, en:`TV shows and films` },
+  { id:`code`,  label:`编程`, en:`programming and side projects (keep it casual, like chatting with a friend, not a job interview)` },
+  { id:`ai`,    label:`AI 新闻`, en:`AI news. Ask what I've read recently. If I have nothing, briefly tell me one recent piece of AI news in simple English (look it up if you can), then ask what I think` },
+  { id:`custom`,label:`自己写` }
+];
+
+const UNIT_MAP = [
+  `1–4 present simple / present continuous`,
+  `5–6 past simple / past continuous`,
+  `7–14 present perfect, for / since`,
+  `15–16 past perfect`,
+  `17 have got · 18 used to`,
+  `19–25 future forms`,
+  `26–37 modal verbs`,
+  `38–41 if / wish`,
+  `42–46 passive`,
+  `47–48 reported speech`,
+  `49–52 questions, auxiliary verbs, question tags`,
+  `53–68 -ing and to...`,
+  `69–71 countable / uncountable · 72–78 a / an / the · 79–81 plurals, noun + noun, 's`,
+  `82–91 pronouns and determiners (some / any 85, much / many 87)`,
+  `92–97 relative clauses`,
+  `98–108 adjectives, adverbs, comparison`,
+  `109–112 word order, still / yet / already, even`,
+  `113–120 although, in case, unless, as, like, while, by the time`,
+  `121–128 prepositions of time and place`,
+  `129–136 noun / adjective / verb + preposition`,
+  `137–145 phrasal verbs`
+];
+
+const KIND_LABEL = { new:`新演`, replay:`重演`, review:`本级复习`, free:`自由聊` };
+
+/* ---------- state ---------- */
+const KEY = `speaking-ladder-v3`;
+let state = { mode:`story`, kind:`new`, level:1, ep:1, topic:`auto`, custom:``, zh:true, easy:false, nbAll:false, quiz:false, paste:`` };
+try {
+  const s = JSON.parse(localStorage.getItem(KEY) || localStorage.getItem(`speaking-ladder-v2`) || `null`);
+  if (s && typeof s === `object`) state = Object.assign(state, s);
+} catch(e) {}
+function normalizeState(){
+  if (!LEVELS[state.level - 1]) state.level = 1;
+  if (!EPISODES[state.ep - 1]) state.ep = 1;
+  if (state.mode !== `story` && state.mode !== `free`) state.mode = `story`;
+  if (![`new`,`replay`,`review`].includes(state.kind)) state.kind = `new`;
+  if (!TOPICS.some(t => t.id === state.topic)) state.topic = `auto`;
+  if (typeof state.custom !== `string`) state.custom = ``;
+  if (typeof state.paste !== `string`) state.paste = ``;
+  if (EPISODES[state.ep - 1].lv !== state.level) state.ep = EPISODES.findIndex(e => e.lv === state.level) + 1;
+}
+normalizeState();
+let saveTimer = null;
+function save(){ try { localStorage.setItem(KEY, JSON.stringify(state)); } catch(e) {} }
+function saveSoon(){ clearTimeout(saveTimer); saveTimer = setTimeout(save, 400); }
+
+/* ---------- notebook storage: this device only (localStorage) ---------- */
+const LKEY = `speaking-ladder-cards-v1`;
+const store = { local:[] };
+try { const a = JSON.parse(localStorage.getItem(LKEY) || `[]`); store.local = Array.isArray(a) ? a : []; } catch(e) {}
+function persistLocal(){ try { localStorage.setItem(LKEY, JSON.stringify(store.local)); return true; } catch(e) { return false; } }
+function allSaves(){ return store.local; }
+function newId(){ return `s-` + Date.now().toString(36) + `-` + Math.random().toString(36).slice(2, 7); }
+
+function addSave(body){
+  store.local.push(Object.assign({ id: newId() }, body));
+  const ok = persistLocal(); refreshData();
+  return ok;
+}
+function removeSave(id){
+  const i = store.local.findIndex(s => s.id === id);
+  if (i < 0) return false;
+  store.local.splice(i, 1); persistLocal(); refreshData();
+  return true;
+}
+
+/* ---------- export / import (manual sync between devices) ---------- */
+const EXPORT_APP = `speaking-ladder`;
+function exportText(){
+  const { paste, ...settings } = state;
+  return JSON.stringify({ app: EXPORT_APP, version: 1, exportedAt: new Date().toISOString(), settings, cards: store.local }, null, 2);
+}
+function cleanSave(s){
+  if (!s || typeof s !== `object` || typeof s.id !== `string` || !s.id) return null;
+  const lv = Number(s.lv), ep = Number(s.ep);
+  if (!LEVELS[lv - 1] || !(ep === 0 || EPISODES[ep - 1]) || !KIND_LABEL[s.kind]) return null;
+  const items = (Array.isArray(s.items) ? s.items : [])
+    .filter(i => i && [`E`,`G`,`S`].includes(i.t) && typeof i.a === `string` && i.a.trim())
+    .map(i => ({ t: i.t, a: i.a.slice(0, 240), b: typeof i.b === `string` ? i.b.slice(0, 240) : `` }));
+  if (!items.length) return null;
+  return { id: s.id, ep, lv, kind: s.kind, at: typeof s.at === `string` ? s.at : new Date().toISOString(), items };
+}
+/* Returns { added, skipped, invalid, settings } or throws Error with a message for the user. Never removes existing cards. */
+function importText(text){
+  let data;
+  try { data = JSON.parse(String(text || ``).trim()); }
+  catch(e) { throw new Error(`这段文字不是完整的导出数据，可能复制时少了开头或结尾。请在另一台设备上重新导出，点「复制」后整段粘贴。`); }
+  const cards = Array.isArray(data) ? data : (data && typeof data === `object` && Array.isArray(data.cards) ? data.cards : null);
+  if (!cards) throw new Error(`没找到复习卡数据。请粘贴本页「导出」生成的整段文字。`);
+  const have = new Set(store.local.map(s => s.id));
+  const fresh = [];
+  let skipped = 0, invalid = 0;
+  cards.forEach(raw => {
+    const s = cleanSave(raw);
+    if (!s) { invalid++; return; }
+    if (have.has(s.id)) { skipped++; return; }
+    have.add(s.id); fresh.push(s);
+  });
+  if (cards.length && !fresh.length && !skipped) throw new Error(`里面的 ${cards.length} 组复习卡都认不出来，没有导入。`);
+  const settings = !Array.isArray(data) && data.settings && typeof data.settings === `object` ? data.settings : null;
+  if (fresh.length) {
+    store.local = store.local.concat(fresh);
+    if (!persistLocal()) { store.local = store.local.slice(0, store.local.length - fresh.length); throw new Error(`这台设备的存储写不进去（可能是无痕模式或空间不足），没有导入。`); }
+  }
+  if (settings) {
+    const { paste, ...rest } = settings;
+    Object.assign(state, rest); normalizeState(); save();
+  }
+  return { added: fresh.length, skipped, invalid, settings: !!settings };
+}
+
+/* Copy inside the click handler. If the clipboard API refuses, select all text so the user can copy by hand. */
+function copyFrom(el, onDone, onFail){
+  const selectAll = () => { try { el.focus({ preventScroll: true }); el.setSelectionRange(0, el.value.length); } catch(e) {} };
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    let p = null;
+    try { p = navigator.clipboard.writeText(el.value); } catch(e) {}
+    if (p) { p.then(onDone, () => { selectAll(); onFail(); }); return; }
+  }
+  selectAll();
+  let ok = false;
+  try { ok = document.execCommand(`copy`); } catch(e) {}
+  if (ok) onDone(); else onFail();
+}
+
+/* ---------- card helpers ---------- */
+function parseCards(text){
+  const items = [];
+  String(text || ``).split(/\r?\n/).forEach(raw => {
+    let line = raw.trim();
+    if (!line || /^`{3}/.test(line)) return;
+    line = line.replace(/^(?:[-*•]|\d+[.)])\s+/, ``);
+    let t, rest;
+    const m = line.match(/^([EGSegs])\s*[:：]\s*(.+)$/);
+    if (m) { t = m[1].toUpperCase(); rest = m[2]; }
+    else if (/[|｜]/.test(line)) { t = `E`; rest = line; }
+    else return;
+    const parts = rest.split(/\s*[|｜]\s*/);
+    const a = (parts[0] || ``).trim();
+    const b = parts.slice(1).join(` / `).trim();
+    if (!a) return;
+    items.push({ t, a: a.slice(0, 240), b: b.slice(0, 240) });
+  });
+  return items.slice(0, 24);
+}
+function itemsOf(saves, type){
+  const seen = new Set(), out = [];
+  saves.slice().sort((x, y) => String(y.at).localeCompare(String(x.at))).forEach(s => {
+    (s.items || []).forEach(it => {
+      if (it.t !== type) return;
+      const k = String(it.a).toLowerCase();
+      if (seen.has(k)) return;
+      seen.add(k); out.push(it);
+    });
+  });
+  return out;
+}
+function hashStr(s){ let h = 2166136261; for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); } return h >>> 0; }
+function seeded(seed){ let a = seed; return () => { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+function pick(arr, n, key){
+  const today = new Date().toISOString().slice(0, 10);
+  const rnd = seeded(hashStr(today + `|` + key));
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(rnd() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; }
+  return a.slice(0, n);
+}
+const savesForEp = n => allSaves().filter(s => s.ep === n);
+const savesForLevel = lv => allSaves().filter(s => s.lv === lv);
+function olderSaves(){
+  if (state.mode === `free`) return allSaves();
+  if (state.kind === `review`) return allSaves().filter(s => s.lv < state.level);
+  return allSaves().filter(s => (s.ep > 0 && s.ep < state.ep) || (s.ep === 0 && s.lv < state.level));
+}
+const quizLine = it => `- ${it.b || `(no Chinese given)`} → ${it.a}`;
+
+/* ---------- rendering ---------- */
+const $ = id => document.getElementById(id);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+function renderMode(){
+  document.querySelectorAll(`[data-mode]`).forEach(b => b.setAttribute(`aria-pressed`, String(b.dataset.mode === state.mode)));
+  document.querySelectorAll(`[data-kind]`).forEach(b => b.setAttribute(`aria-pressed`, String(b.dataset.kind === state.kind)));
+  const story = state.mode === `story`;
+  $(`ep-field`).hidden = !story || state.kind === `review`;
+  $(`kind-field`).hidden = !story;
+  $(`topic-field`).hidden = story;
+  const L = state.level, n = state.ep;
+  let note = ``;
+  if (story && state.kind === `new`) note = `第一次演这一集。建议从第 1 集开始，就算觉得简单，也先演一两次，让开口这件事变轻松。`;
+  if (story && state.kind === `replay`) {
+    const c = itemsOf(savesForEp(n), `E`).length;
+    note = c ? `隔一两天再演第 ${n} 集。开头 AI 会先用中文考你这一集存下的 ${c} 张卡，场景也会换个走向。` : `第 ${n} 集还没有存复习卡。可以照样重演，开头会改成让你回忆上次学到的说法。`;
+  }
+  if (story && state.kind === `review`) {
+    const c = itemsOf(savesForLevel(L), `E`).length;
+    note = `Lv${L} 的三集都演过以后用。新场景「${REVIEWS[L].title}」，开头抽这一级的复习卡（目前 ${c} 张），最后让你复述三集。`;
+  }
+  $(`kind-note`).textContent = note;
+}
+function renderStair(){
+  $(`stair`).innerHTML = LEVELS.map((L, i) => {
+    const h = 64 + i * 11;
+    const cls = L.id < state.level ? `step below` : `step`;
+    return `<button type="button" class="${cls}" style="height:${h}px" aria-pressed="${L.id === state.level}" data-lv="${L.id}" aria-label="Lv${L.id} ${esc(L.name)}"><span class="lv">Lv${L.id}</span><span class="nm">${esc(L.short)}</span></button>`;
+  }).join(``);
+}
+function centerStep(){
+  const stair = $(`stair`);
+  const s = stair.querySelector(`[aria-pressed="true"]`);
+  if (!s) return;
+  stair.scrollLeft = Math.max(0, s.offsetLeft - (stair.clientWidth - s.offsetWidth) / 2);
+}
+function renderEps(){
+  const list = EPISODES.map((e, i) => ({ e, n: i + 1 })).filter(x => x.e.lv === state.level);
+  $(`eps`).innerHTML = list.map(({ e, n }) => {
+    const c = itemsOf(savesForEp(n), `E`).length;
+    const badge = c ? `<span class="badge">已存 ${c} 张卡</span>` : ``;
+    return `<button type="button" class="ep" aria-pressed="${n === state.ep}" data-ep="${n}"><span class="no">第 ${n} 集 · ${esc(ACTS[e.lv])}</span><span class="t">${esc(e.title)}</span><span class="d">${esc(e.zh)}</span>${badge}</button>`;
+  }).join(``);
+}
+function renderCard(){
+  const L = LEVELS[state.level - 1];
+  $(`card`).innerHTML = `
+    <div class="level-card">
+      <div class="lc-head"><span class="lc-lv">Lv${L.id} / 11</span><h3>${esc(L.name)}</h3><span class="en">${esc(L.en)}</span></div>
+      <p>${esc(L.can)}</p>
+      <div class="lc-row"><span class="lc-label">Murphy 单元</span><div class="chips">${L.units.map(u => `<span class="unit"><code>U${esc(u[0])}</code>${esc(u[1])}</span>`).join(``)}</div></div>
+      <div class="lc-row"><span class="lc-label">开口句式</span><ul class="frames">${L.frames.map(f => `<li>${esc(f)}</li>`).join(``)}</ul></div>
+      <div class="lc-row"><span class="lc-label">${state.mode === `story` ? `自由聊话题` : `可以聊`}</span><p>${esc(L.topics)}</p></div>
+    </div>`;
+}
+function renderTopics(){
+  $(`topics`).innerHTML = TOPICS.map(t => `<button type="button" class="topic" aria-pressed="${t.id === state.topic}" data-topic="${t.id}">${esc(t.label)}</button>`).join(``);
+  const c = $(`custom`);
+  c.hidden = state.topic !== `custom`;
+  if (c.value !== state.custom) c.value = state.custom;
+}
+function renderMap(){
+  $(`map`).innerHTML = LEVELS.map(L => `<tr>
+      <td><button type="button" class="lv-btn" data-lv="${L.id}"><span>Lv${L.id}</span>${esc(L.short)}</button></td>
+      <td>${esc(L.can)}</td>
+      <td class="u">${L.units.map(u => esc(u[0])).join(`、`)}</td>
+    </tr>`).join(``);
+}
+function renderToc(){
+  let html = ``;
+  EPISODES.forEach((e, i) => {
+    if (i === 0 || EPISODES[i - 1].lv !== e.lv) {
+      const L = LEVELS[e.lv - 1];
+      html += `<tr><td class="group" colspan="3">Lv${L.id} ${esc(L.name)} · ${esc(ACTS[e.lv])}</td></tr>`;
+    }
+    html += `<tr><td><button type="button" class="lv-btn" data-ep="${i + 1}"><span>${String(i + 1).padStart(2, `0`)}</span></button></td><td>${esc(e.title)}</td><td>${esc(e.zh)}</td></tr>`;
+    const next = EPISODES[i + 1];
+    if (!next || next.lv !== e.lv) {
+      html += `<tr><td><button type="button" class="lv-btn" data-review="${e.lv}"><span>复习</span></button></td><td>${esc(REVIEWS[e.lv].title)}</td><td>本级复习：新场景里把这一级三集的说法混着用，最后复述三集。</td></tr>`;
+    }
+  });
+  $(`toc`).innerHTML = html;
+}
+
+/* save box */
+function saveTarget(){
+  if (state.mode === `free`) return { ep:0, lv:state.level, kind:`free`, label:`存到 Lv${state.level} 自由聊` };
+  if (state.kind === `review`) return { ep:0, lv:state.level, kind:`review`, label:`存到 Lv${state.level} 复习` };
+  const n = state.ep;
+  return { ep:n, lv:EPISODES[n - 1].lv, kind:state.kind, label: state.kind === `replay` ? `存到第 ${n} 集（重演）` : `存到第 ${n} 集` };
+}
+function renderSaveBox(){
+  const t = saveTarget();
+  const items = parseCards($(`paste`).value);
+  const btn = $(`save-btn`);
+  btn.textContent = t.label;
+  btn.disabled = items.length === 0;
+  const st = $(`save-status`);
+  if (!st.dataset.sticky) {
+    if (!$(`paste`).value.trim()) st.textContent = ``;
+    else if (!items.length) st.textContent = `还没认出卡片。每行要以 E:、G: 或 S: 开头，或者用 | 分开英文和中文。`;
+    else {
+      const c = { E:0, G:0, S:0 }; items.forEach(i => c[i.t]++);
+      st.textContent = `认出 ${c.E} 个表达、${c.G} 个语法点、${c.S} 个句子。`;
+    }
+  }
+}
+
+/* notebook */
+function fmtDate(iso){ const d = new Date(iso); return isNaN(d) ? `` : `${d.getMonth() + 1}月${d.getDate()}日`; }
+function saveHtml(s){
+  const es = (s.items || []).filter(i => i.t === `E`);
+  const gs = (s.items || []).filter(i => i.t === `G`);
+  const ss = (s.items || []).filter(i => i.t === `S`);
+  return `<div class="nb-save">
+    <div class="nb-meta"><span>${esc(KIND_LABEL[s.kind] || ``)} · ${esc(fmtDate(s.at))}</span><button type="button" class="del" data-del="${esc(s.id)}">删除</button></div>
+    ${es.length ? `<div class="cards">${es.map(i => `<button type="button" class="card-e"><span class="en">${esc(i.a)}</span><span class="zh">${esc(i.b)}</span></button>`).join(``)}</div>` : ``}
+    ${gs.map(i => `<div class="card-g"><span class="unit"><code>${esc(i.b || `语法`)}</code>${esc(i.a)}</span></div>`).join(``)}
+    ${ss.map(i => `<div class="card-s">${esc(i.a)} → <b>${esc(i.b)}</b></div>`).join(``)}
+  </div>`;
+}
+function groupHtml(title, tag, saves){
+  if (!saves.length) return ``;
+  const sorted = saves.slice().sort((x, y) => String(y.at).localeCompare(String(x.at)));
+  return `<div class="nb-group"><h3><span>${esc(tag)}</span>${esc(title)}</h3>${sorted.map(saveHtml).join(``)}</div>`;
+}
+function levelGroups(lv){
+  let html = ``;
+  EPISODES.forEach((e, i) => { if (e.lv === lv) html += groupHtml(e.title, `第 ${i + 1} 集`, savesForEp(i + 1)); });
+  html += groupHtml(REVIEWS[lv].title, `Lv${lv} 复习`, allSaves().filter(s => s.lv === lv && s.kind === `review`));
+  html += groupHtml(`自由聊`, `Lv${lv}`, allSaves().filter(s => s.lv === lv && s.kind === `free`));
+  return html;
+}
+function renderNotebook(){
+  const all = allSaves();
+  const total = itemsOf(all, `E`).length;
+  const where = `复习卡存在这台设备上。`;
+  $(`nb-note`).textContent = `${where}全部共 ${total} 个表达。打开「遮住英文自测」后，看中文想英文，点一下显示答案。`;
+  $(`nb-scope`).textContent = state.nbAll ? `只看 Lv${state.level}` : `看全部级别`;
+  document.getElementById(`nb`).classList.toggle(`quiz`, !!state.quiz);
+  $(`nb-quiz`).checked = !!state.quiz;
+  let html = ``;
+  if (state.nbAll) { for (let lv = 1; lv <= 11; lv++) html += levelGroups(lv); }
+  else html = levelGroups(state.level);
+  $(`nb`).innerHTML = html || `<div class="empty">${state.nbAll ? `还没有复习卡。` : `Lv${state.level} 还没有复习卡。`}练完后在上面「存复习卡」里贴入 wrap up 给的代码块，卡片会出现在这里。</div>`;
+  if (!$(`exp-panel`).hidden) $(`exp-out`).value = exportText();
+}
+
+/* ---------- prompt building ---------- */
+const ABOUT = `About me: I'm a Chinese adult. I read English much better than I speak it. When I speak, I often need time to think, I get stuck after two or three sentences, and I make grammar mistakes. Please keep it easy and relaxed so that I want to keep talking.`;
+const STORY = [
+  `THE STORY`,
+  `Leo Chen is a Chinese software engineer in his late twenties who loves hiking and taking photos. The story follows one year of his life: joining Clearwater Tech's Shanghai office, a six-month assignment in Vancouver, a solo road trip in the Rockies, and the last weeks of his assignment. I play Leo. You play everyone else.`,
+  `Characters: Maya (his team lead in Shanghai, Canadian, warm and direct), Tom (a British colleague in Shanghai who jokes a lot), Priya (a colleague in Shanghai, organised, loves food), Daniel (his manager in Vancouver, calm, asks good questions), Jake (his flatmate in Vancouver, outdoorsy and chatty), Anna (a photographer he meets on his trip).`
+];
+const QUIZ_HOW = `Quiz me one at a time: say the Chinese, and I try to say the English. If I can't, give me the first word as a hint, then the full answer, and ask me to say it once. Keep it quick and friendly.`;
+
+function talkRules(L, story){
+  const zhRule = state.zh
+    ? `If I say a word or a sentence in Chinese, give me a short, natural way to say it in English, ask me to repeat it once, then carry on. Always reply in English, even when I use Chinese (the wrap-up is the only exception).`
+    : `Keep the whole conversation in English. If I get stuck, offer me a simpler English word or a sentence starter.`;
+  const r = [
+    `HOW TO TALK WITH ME`,
+    story ? `1. Keep your turns short, also when you're in character: one to three sentences, then ask me ONE question.` : `1. Keep your turns short: one to three sentences, then ask me ONE question.`,
+    `2. Speak a little slowly and use common, everyday words. Stay at my level.`,
+    story ? `3. Question style for my level: ${L.ask}` : `3. ${L.ask}`,
+    `4. I may pause for a long time while I think. Wait for me. If I stay silent, don't change the topic; give me a sentence starter instead, for example: "You could start with: ${L.frames[0]}"`,
+    `5. ${zhRule}`,
+    `6. Use today's grammar naturally in your own sentences so I can hear it, and give me chances to use it. Don't explain grammar unless I ask.`,
+    story ? `7. Corrections: never interrupt me. When I finish, if there was an important mistake, say my idea back correctly once, in a natural way (in character during the scene), and carry on. At most one correction per turn. Let small mistakes go.` : `7. Corrections: never interrupt me. When I finish, if there was an important mistake, say my idea back correctly once, in a natural way, and carry on. At most one correction per turn. Let small mistakes go.`,
+    `8. Be friendly and honest. No over-the-top praise.`,
+    `9. If I say "slower", "shorter" or "easier", adjust straight away.`
+  ];
+  if (state.easy) r.push(`10. Today I want it extra easy: use very short sentences, ask mainly yes/no or either/or questions, and only correct me when my meaning is unclear.`);
+  return r;
+}
+function tail(){
+  return [
+    `WRAP-UP`,
+    `If I say "wrap up" (or "结束") while we're talking in voice, just say goodbye in one short sentence. I'll leave voice mode and type "wrap up" in the chat.`,
+    `When I type "wrap up", write a short summary in Chinese, with English examples:`,
+    `- 3 to 5 useful expressions from today (ones I used or was looking for)`,
+    `- Up to 2 grammar points worth a look, each with its Murphy unit from the map below (if you're not sure of the unit, just name the grammar point)`,
+    `- 1 sentence of mine, rewritten to sound more natural`,
+    `Then give me review cards in ONE code block, so I can copy them in one go. Use exactly this format, one item per line:`,
+    `E: <English expression> | <Chinese meaning>`,
+    `G: <grammar point, in Chinese> | Unit <number>`,
+    `S: <my original sentence> | <a more natural version>`,
+    `Keep it short: no scores, no homework.`,
+    ``,
+    `MURPHY UNIT MAP (English Grammar in Use, 5th edition)`,
+    ...UNIT_MAP
+  ];
+}
+function olderQuiz(n){
+  const picks = pick(itemsOf(olderSaves(), `E`), n, `older|${state.mode}|${state.kind}|${state.ep}|${state.level}`);
+  return picks;
+}
+function topicLine(L){
+  const t = TOPICS.find(x => x.id === state.topic);
+  const auto = `You choose. Pick something light that suits this level, for example: ${L.topicsEn}. Change the topic if I seem stuck.`;
+  if (t.id === `auto`) return auto;
+  if (t.id === `custom`) return state.custom.trim() ? state.custom.trim() : auto;
+  return t.en;
+}
+const unitsOf = L => L.units.map(u => u[0]).join(`, `);
+
+function freePrompt(){
+  const L = LEVELS[state.level - 1];
+  const old = olderQuiz(3);
+  const lines = [
+    `You are my English speaking partner. We're going to have a voice conversation.`,
+    ``, ABOUT, ``,
+    `TODAY`,
+    `- Level ${L.id} of 11: ${L.en}. Goal: ${L.canEn}.`,
+    `- Grammar to practise: ${L.focus}. (Murphy, English Grammar in Use 5th edition, Units ${unitsOf(L)})`,
+    `- Topic: ${topicLine(L)}`,
+    `- What to expect from me: ${L.len}`
+  ];
+  if (old.length) lines.push(``, `QUICK REVIEW FIRST (about 3 minutes)`, `Before we start chatting, check a few expressions from earlier sessions. ${QUIZ_HOW}`, ...old.map(quizLine), `If any of them fits naturally later, give me a chance to use it.`);
+  lines.push(``, ...talkRules(L, false), ``, ...tail(), ``,
+    old.length ? `Start now: greet me in one short sentence, then begin the quick review.` : `Start now: greet me in one short sentence and ask an easy first question about the topic.`);
+  return lines.join(`\n`);
+}
+
+function storyNew(){
+  const n = state.ep, E = EPISODES[n - 1], L = LEVELS[E.lv - 1], prev = EPISODES[n - 2];
+  const old = olderQuiz(3);
+  const part1 = prev
+    ? `Part 1, recap (about 5 minutes): Ask me two or three easy questions about what happened last time, so I can retell it in my own words.`
+    : `Part 1, warm-up (about 5 minutes): Ask me two or three easy questions about Leo (who he is, where he's from, what he does), so I can introduce him in my own words.`;
+  const lines = [
+    `You are my English speaking partner. Today we'll play one episode of an ongoing story, as a voice conversation.`,
+    ``, ABOUT, ``, ...STORY,
+    `Previously: ${prev ? prev.sum : `Nothing yet. This is the first episode.`}`,
+    `If I mention something that happened earlier in a different way, go with my version.`,
+    ``,
+    `TODAY: Episode ${n} of 33, "${E.en}"`,
+    `- Scene: ${E.scene}`,
+    `- You play: ${E.roles}`,
+    `- What I'll try to do as Leo (help me get there): ${E.goals.join(`; `)}`,
+    `- Level ${L.id} of 11 (${L.en}). Grammar to practise: ${L.focus}. (Murphy, English Grammar in Use 5th edition, Units ${unitsOf(L)})`,
+    `- What to expect from me: ${L.len}`,
+    ``,
+    `HOW THE SESSION GOES (about 30 minutes; I can stop at any time)`,
+    part1
+  ];
+  if (old.length) lines.push(`At the end of Part 1, also check a few expressions from earlier episodes. ${QUIZ_HOW}`, ...old.map(quizLine));
+  lines.push(
+    `Part 2, the scene (about 15 minutes): Say "Scene starts", set the scene in one or two sentences, then stay in character. Steer the scene so that Leo's goals come up naturally. Add small events and questions to keep it going, and don't let it end too quickly.`,
+    `Part 3, real life (about 10 minutes): Say "Scene ends", step out of the story and ask me about my own life: ${E.real}.`,
+    `If I say "next part", move on to the next part straight away.`,
+    ``, ...talkRules(L, true), ``, ...tail(), ``,
+    `Start now with Part 1. Greet me in one short sentence first.`
+  );
+  return lines.join(`\n`);
+}
+
+function storyReplay(){
+  const n = state.ep, E = EPISODES[n - 1], L = LEVELS[E.lv - 1];
+  const saves = savesForEp(n);
+  const es = itemsOf(saves, `E`).slice(0, 8);
+  const gs = itemsOf(saves, `G`).slice(0, 2);
+  const ss = itemsOf(saves, `S`).slice(0, 2);
+  const twist = TWISTS[hashStr(new Date().toISOString().slice(0, 10) + `|` + n) % TWISTS.length];
+  const lines = [
+    `You are my English speaking partner. Today we'll replay one episode of an ongoing story, as a voice conversation. I've played it before; this time it should go a bit differently.`,
+    ``, ABOUT, ``, ...STORY,
+    `Last time we played this episode: ${E.sum}`,
+    `If I mention something that happened earlier in a different way, go with my version.`,
+    ``,
+    `TODAY: Episode ${n} of 33, "${E.en}" (replay)`,
+    `- Scene: ${E.scene}`,
+    `- This time: ${twist}`,
+    `- You play: ${E.roles}`,
+    `- What I'll try to do as Leo (help me get there): ${E.goals.join(`; `)}`,
+    `- Level ${L.id} of 11 (${L.en}). Grammar to practise: ${L.focus}. (Murphy, English Grammar in Use 5th edition, Units ${unitsOf(L)})`,
+    `- What to expect from me: ${L.len}`,
+    ``,
+    `HOW THE SESSION GOES (about 30 minutes; I can stop at any time)`
+  ];
+  if (es.length) lines.push(`Part 1, quick quiz (about 5 minutes): These are the expressions I saved last time. ${QUIZ_HOW}`, ...es.map(quizLine));
+  else lines.push(`Part 1, recall (about 5 minutes): Ask me what I remember from the last time I played this episode, and which English expressions I learned. Help me say them again.`);
+  if (gs.length) lines.push(`Grammar from last time: ${gs.map(g => g.a + (g.b ? ` (${g.b})` : ``)).join(`; `)}.`);
+  if (ss.length) lines.push(`Sentences I fixed last time: ${ss.map(s => `"${s.a}" → "${s.b}"`).join(`; `)}.`);
+  lines.push(
+    `Part 2, the scene (about 15 minutes): Say "Scene starts", set the scene in one or two sentences, then stay in character. Include the change above. Create chances for me to use the expressions from Part 1 again, without telling me which ones.`,
+    `Part 3, real life (about 10 minutes): Say "Scene ends", step out of the story and ask me about my own life, from a different angle than last time: ${E.real}.`,
+    `If I say "next part", move on to the next part straight away.`,
+    ``, ...talkRules(L, true), ``, ...tail(), ``,
+    `Start now with Part 1. Greet me in one short sentence first.`
+  );
+  return lines.join(`\n`);
+}
+
+function storyReview(){
+  const lv = state.level, L = LEVELS[lv - 1], R = REVIEWS[lv];
+  const eps = EPISODES.map((e, i) => ({ e, n: i + 1 })).filter(x => x.e.lv === lv);
+  const es = pick(itemsOf(savesForLevel(lv), `E`), 6, `review|${lv}`);
+  const old = olderQuiz(2);
+  const lines = [
+    `You are my English speaking partner. Today is a review session for one part of an ongoing story, as a voice conversation.`,
+    ``, ABOUT, ``, ...STORY,
+    `Recent episodes in this part:`,
+    ...eps.map(({ e, n }) => `- Episode ${n}, "${e.en}": ${e.sum}`),
+    `If I mention something that happened in a different way, go with my version.`,
+    ``,
+    `TODAY: Level ${lv} review`,
+    `- Scene: ${R.scene}`,
+    `- You play: ${R.roles}`,
+    `- What I'll try to do as Leo: talk about what has happened recently, using this level's grammar and the expressions I've learned`,
+    `- Level ${L.id} of 11 (${L.en}). Grammar to practise: ${L.focus}. (Murphy, English Grammar in Use 5th edition, Units ${unitsOf(L)})`,
+    `- What to expect from me: ${L.len}`,
+    ``,
+    `HOW THE SESSION GOES (about 30 minutes; I can stop at any time)`
+  ];
+  if (es.length) lines.push(`Part 1, quiz (about 5 minutes): Expressions I saved in this level. ${QUIZ_HOW}`, ...es.map(quizLine));
+  else lines.push(`Part 1, recall (about 5 minutes): Ask me which English expressions I remember from these episodes, and help me say them again.`);
+  if (old.length) lines.push(`Then check two older ones too:`, ...old.map(quizLine));
+  lines.push(
+    `Part 2, the scene (about 15 minutes): Say "Scene starts", set the scene in one or two sentences, then stay in character. Ask about the things that happened in these episodes, so I have to use this level's grammar to talk about them.`,
+    `Part 3, retell (about 10 minutes): Say "Scene ends". Ask me to retell the episodes of this part one at a time, in my own words. After each one, ask one or two short questions.`,
+    `If I say "next part", move on to the next part straight away.`,
+    ``, ...talkRules(L, true), ``, ...tail(), ``,
+    `Start now with Part 1. Greet me in one short sentence first.`
+  );
+  return lines.join(`\n`);
+}
+
+function buildPrompt(){
+  if (state.mode === `free`) return freePrompt();
+  if (state.kind === `replay`) return storyReplay();
+  if (state.kind === `review`) return storyReview();
+  return storyNew();
+}
+function renderOut(clear){
+  $(`out`).value = buildPrompt();
+  if (clear) $(`copy-status`).textContent = ``;
+}
+
+function renderAll(){ renderMode(); renderStair(); renderEps(); renderCard(); renderTopics(); renderOut(true); renderSaveBox(); renderNotebook(); }
+function refreshData(){ renderMode(); renderEps(); renderOut(false); renderNotebook(); }
+
+/* ---------- events ---------- */
+function setLevel(n){
+  state.level = n;
+  if (EPISODES[state.ep - 1].lv !== n) state.ep = EPISODES.findIndex(e => e.lv === n) + 1;
+  save(); renderAll(); centerStep();
+}
+function setEp(n){ state.ep = n; state.level = EPISODES[n - 1].lv; save(); renderAll(); centerStep(); }
+function goBuilder(){
+  const reduce = window.matchMedia && window.matchMedia(`(prefers-reduced-motion: reduce)`).matches;
+  $(`builder`).scrollIntoView({ behavior: reduce ? `auto` : `smooth`, block: `start` });
+}
+
+$(`mode`).addEventListener(`click`, e => { const b = e.target.closest(`[data-mode]`); if (!b) return; state.mode = b.dataset.mode; save(); renderAll(); });
+$(`kinds`).addEventListener(`click`, e => { const b = e.target.closest(`[data-kind]`); if (!b) return; state.kind = b.dataset.kind; save(); renderAll(); });
+$(`stair`).addEventListener(`click`, e => { const b = e.target.closest(`[data-lv]`); if (!b) return; setLevel(Number(b.dataset.lv)); });
+$(`eps`).addEventListener(`click`, e => { const b = e.target.closest(`[data-ep]`); if (!b) return; setEp(Number(b.dataset.ep)); });
+$(`map`).addEventListener(`click`, e => { const b = e.target.closest(`[data-lv]`); if (!b) return; setLevel(Number(b.dataset.lv)); goBuilder(); });
+$(`toc`).addEventListener(`click`, e => {
+  const b = e.target.closest(`[data-ep],[data-review]`); if (!b) return;
+  state.mode = `story`;
+  if (b.dataset.review) { state.kind = `review`; setLevel(Number(b.dataset.review)); }
+  else { if (state.kind === `review`) state.kind = `new`; setEp(Number(b.dataset.ep)); }
+  goBuilder();
+});
+$(`topics`).addEventListener(`click`, e => {
+  const b = e.target.closest(`[data-topic]`); if (!b) return;
+  state.topic = b.dataset.topic; save();
+  renderTopics(); renderOut(true);
+  if (state.topic === `custom`) $(`custom`).focus();
+});
+$(`custom`).addEventListener(`input`, e => { state.custom = e.target.value; saveSoon(); renderOut(true); });
+$(`opt-zh`).addEventListener(`change`, e => { state.zh = e.target.checked; save(); renderOut(true); });
+$(`opt-easy`).addEventListener(`change`, e => { state.easy = e.target.checked; save(); renderOut(true); });
+
+$(`copy`).addEventListener(`click`, () => {
+  const out = $(`out`), status = $(`copy-status`), btn = $(`copy`);
+  const done = () => {
+    status.textContent = `已复制。去 ChatGPT 新对话里粘贴发送吧。`;
+    btn.textContent = `已复制`;
+    setTimeout(() => { btn.textContent = `复制提示词`; }, 1800);
+  };
+  const fail = () => { status.textContent = `没能自动复制。文字已经全部选中，请手动复制（长按，或 Ctrl/⌘ + C）。`; };
+  copyFrom(out, done, fail);
+});
+
+$(`paste`).addEventListener(`input`, e => { state.paste = e.target.value; saveSoon(); delete $(`save-status`).dataset.sticky; renderSaveBox(); });
+$(`save-btn`).addEventListener(`click`, () => {
+  const items = parseCards($(`paste`).value);
+  if (!items.length) return;
+  const t = saveTarget();
+  const btn = $(`save-btn`), st = $(`save-status`);
+  btn.disabled = true;
+  const ok = addSave({ ep:t.ep, lv:t.lv, kind:t.kind, at:new Date().toISOString(), items });
+  $(`paste`).value = ``; state.paste = ``; save();
+  st.dataset.sticky = `1`;
+  const c = items.filter(i => i.t === `E`).length;
+  st.textContent = ok ? `已存 ${c} 个表达到这台设备。下次重演或复习时会自动带上。` : `已加入 ${c} 个表达，但这台设备的存储写不进去（可能是无痕模式或空间不足），刷新后会丢失。`;
+  setTimeout(() => { delete st.dataset.sticky; renderSaveBox(); }, 4000);
+  renderSaveBox();
+});
+
+$(`nb-quiz`).addEventListener(`change`, e => { state.quiz = e.target.checked; save(); renderNotebook(); });
+$(`nb-scope`).addEventListener(`click`, () => { state.nbAll = !state.nbAll; save(); renderNotebook(); });
+$(`nb`).addEventListener(`click`, async e => {
+  const d = e.target.closest(`[data-del]`);
+  if (d) {
+    if (d.dataset.armed !== `1`) {
+      d.dataset.armed = `1`; d.textContent = `确认删除？`;
+      setTimeout(() => { if (d.isConnected) { d.dataset.armed = ``; d.textContent = `删除`; } }, 3000);
+      return;
+    }
+    d.textContent = `删除中…`;
+    const ok = await removeSave(d.dataset.del);
+    if (!ok && d.isConnected) d.textContent = `没删掉，再试一次`;
+    return;
+  }
+  const c = e.target.closest(`.card-e`);
+  if (c && state.quiz) c.classList.toggle(`revealed`);
+});
+
+/* export / import panels */
+function openSync(which){
+  const exp = which === `exp` && $(`exp-panel`).hidden;
+  const imp = which === `imp` && $(`imp-panel`).hidden;
+  $(`exp-panel`).hidden = !exp; $(`nb-export`).setAttribute(`aria-expanded`, String(exp));
+  $(`imp-panel`).hidden = !imp; $(`nb-import`).setAttribute(`aria-expanded`, String(imp));
+  if (exp) { $(`exp-out`).value = exportText(); $(`exp-status`).textContent = `共 ${store.local.length} 组复习卡。`; }
+  if (imp) { $(`imp-status`).textContent = ``; }
+}
+$(`nb-export`).addEventListener(`click`, () => openSync(`exp`));
+$(`nb-import`).addEventListener(`click`, () => openSync(`imp`));
+$(`exp-copy`).addEventListener(`click`, () => {
+  const btn = $(`exp-copy`), st = $(`exp-status`);
+  copyFrom($(`exp-out`), () => {
+    st.textContent = `已复制。到另一台设备打开本页，点「导入」粘贴。`;
+    btn.textContent = `已复制`;
+    setTimeout(() => { btn.textContent = `复制`; }, 1800);
+  }, () => { st.textContent = `没能自动复制。文字已经全部选中，请手动复制（长按，或 Ctrl/⌘ + C）。`; });
+});
+$(`imp-in`).addEventListener(`input`, e => { $(`imp-btn`).disabled = !e.target.value.trim(); $(`imp-status`).textContent = ``; });
+$(`imp-btn`).addEventListener(`click`, () => {
+  const st = $(`imp-status`);
+  let r;
+  try { r = importText($(`imp-in`).value); }
+  catch(e) { st.textContent = `没有导入：${e.message}已有的复习卡没有改动。`; return; }
+  $(`imp-in`).value = ``; $(`imp-btn`).disabled = true;
+  $(`opt-zh`).checked = !!state.zh;
+  $(`opt-easy`).checked = !!state.easy;
+  renderAll(); centerStep();
+  const parts = [r.added ? `导入了 ${r.added} 组复习卡。` : `没有新的复习卡。`];
+  if (r.skipped) parts.push(`${r.skipped} 组这台设备上已经有了，已跳过。`);
+  if (r.invalid) parts.push(`${r.invalid} 组格式不对，没导入。`);
+  if (r.settings) parts.push(`练习设置已更新。`);
+  st.textContent = parts.join(``);
+});
+
+$(`opt-zh`).checked = !!state.zh;
+$(`opt-easy`).checked = !!state.easy;
+$(`paste`).value = state.paste || ``;
+renderMap(); renderToc(); renderAll();
+requestAnimationFrame(centerStep);
+
+if (`serviceWorker` in navigator) {
+  window.addEventListener(`load`, () => { navigator.serviceWorker.register(`./sw.js`).catch(() => {}); });
+}
+</script>
+</body>
+</html>

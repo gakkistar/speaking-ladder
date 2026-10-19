@@ -1,0 +1,15 @@
+{
+  "name": "口语阶梯",
+  "short_name": "口语阶梯",
+  "description": "跟着 Leo 过一年的英语口语练习：生成提示词、存复习卡。",
+  "lang": "zh-CN",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "theme_color": "#F3F5F8",
+  "background_color": "#F3F5F8",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" }
+  ]
+}
