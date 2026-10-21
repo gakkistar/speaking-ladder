@@ -27,7 +27,7 @@ img{max-width:100%}
 /* Layout: one quiet 720px study column; a literal 11-step staircase is the only bold element */
 :root{
   --bg:#F3F5F8; --surface:#FFFFFF; --sunk:#EBEEF3; --ink:#17202B; --muted:#5A6576; --line:#D9DFE7;
-  --accent:#2C56C4; --accent-ink:#FFFFFF; --accent-soft:#E2E9F9; --mark:#FFE57A; --mark-ink:#3A2F00;
+  --accent:#2C56C4; --accent-ink:#FFFFFF; --accent-soft:#E2E9F9; --mark:#FFE57A; --mark-ink:#3A2F00; --danger:#B3261E;
   --font-display:"Bricolage Grotesque","PingFang SC","Hiragino Sans GB","Microsoft YaHei","Noto Sans SC",system-ui,sans-serif;
   --font-body:system-ui,-apple-system,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei","Noto Sans SC",sans-serif;
   --font-mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,"PingFang SC",monospace;
@@ -35,13 +35,13 @@ img{max-width:100%}
 @media (prefers-color-scheme: dark){
   :root:not([data-theme="light"]){
     --bg:#0F1217; --surface:#161A21; --sunk:#1C212A; --ink:#E5E8ED; --muted:#9AA3B1; --line:#29303A;
-    --accent:#88A6FF; --accent-ink:#0C1430; --accent-soft:#1D2742; --mark:#4B4012; --mark-ink:#FFE48A;
+    --accent:#88A6FF; --accent-ink:#0C1430; --accent-soft:#1D2742; --mark:#4B4012; --mark-ink:#FFE48A; --danger:#FF8A80;
     color-scheme:dark;
   }
 }
 :root[data-theme="dark"]{
   --bg:#0F1217; --surface:#161A21; --sunk:#1C212A; --ink:#E5E8ED; --muted:#9AA3B1; --line:#29303A;
-  --accent:#88A6FF; --accent-ink:#0C1430; --accent-soft:#1D2742; --mark:#4B4012; --mark-ink:#FFE48A;
+  --accent:#88A6FF; --accent-ink:#0C1430; --accent-soft:#1D2742; --mark:#4B4012; --mark-ink:#FFE48A; --danger:#FF8A80;
   color-scheme:dark;
 }
 
@@ -228,6 +228,28 @@ details.more[open]>summary::after{transform:translateY(2px) rotate(-135deg)}
 .more-body{padding:0 14px 14px;display:flex;flex-direction:column;gap:10px}
 .more .level-card{border:0;padding:0;background:none}
 details.save{margin-top:8px}
+.pick,.side{display:flex;flex-direction:column;gap:16px}
+
+/* cloud sync */
+.cloud{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px 14px;display:flex;flex-direction:column;gap:10px}
+.cloud-head{display:flex;align-items:center;gap:10px;flex-wrap:wrap;min-height:30px}
+.cloud-head b{font-size:14px}
+.cloud-status{font-size:13px;color:var(--muted);flex:1 1 12em;min-width:0}
+.cloud-status[data-state="error"]{color:var(--danger)}
+.cloud-btns{display:flex;gap:8px}
+.cloud-setup{display:flex;flex-direction:column;gap:10px}
+.cloud .more{background:var(--bg)}
+.cloud .steps{padding-left:2.2em}
+#cloud-token{flex:1 1 14em;min-width:0;font:inherit;font-size:16px;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:9px 12px}
+
+/* wide screens (iPad landscape, Mac): choices on the left, copy + extras pinned on the right */
+@media (min-width:1024px){
+  .wrap{max-width:1120px}
+  .panel:not(.panel-practice){width:100%;max-width:720px;margin-inline:auto}
+  #builder{display:grid;grid-template-columns:minmax(0,1fr) 340px;column-gap:36px;align-items:start}
+  .side{position:sticky;top:calc(64px + env(safe-area-inset-top,0px));max-height:calc(100vh - 80px - env(safe-area-inset-top,0px));overflow-y:auto;padding-bottom:4px}
+  .side details.save{margin-top:0}
+}
 
 /* reading sections */
 .steps{margin:0;padding-left:1.4em;display:flex;flex-direction:column;gap:6px}
@@ -276,6 +298,7 @@ footer{font-size:12px;color:var(--muted)}
 
   <section id="builder" aria-labelledby="h-builder">
     <h2 id="h-builder" class="sr-only">今天练什么</h2>
+    <div class="pick">
     <div class="seg" id="mode" role="group" aria-label="练习方式">
       <button type="button" data-mode="story" aria-pressed="true">主线故事</button>
       <button type="button" data-mode="free" aria-pressed="false">自由聊</button>
@@ -317,7 +340,9 @@ footer{font-size:12px;color:var(--muted)}
         <label><input type="checkbox" id="opt-easy"> 今天想轻松点</label>
       </div>
     </div>
+    </div>
 
+    <div class="side">
     <div class="prompt">
       <button class="btn big" id="copy" type="button">复制提示词</button>
       <p class="hint">粘贴到 ChatGPT 新对话里发送，然后在同一个对话里点语音按钮。</p>
@@ -345,6 +370,7 @@ footer{font-size:12px;color:var(--muted)}
         </div>
       </div>
     </details>
+    </div>
   </section>
 </div>
 
@@ -357,6 +383,32 @@ footer{font-size:12px;color:var(--muted)}
         <button type="button" class="btn ghost" id="nb-scope">看全部级别</button>
         <button type="button" class="btn ghost" id="nb-export" aria-expanded="false" aria-controls="exp-panel">导出</button>
         <button type="button" class="btn ghost" id="nb-import" aria-expanded="false" aria-controls="imp-panel">导入</button>
+      </div>
+    </div>
+    <div class="cloud" id="cloud">
+      <div class="cloud-head">
+        <b>云同步</b>
+        <span class="cloud-status" id="cloud-status" aria-live="polite"></span>
+        <span class="cloud-btns" id="cloud-on" hidden>
+          <button type="button" class="btn ghost" id="cloud-sync">同步</button>
+          <button type="button" class="btn ghost" id="cloud-off">断开</button>
+        </span>
+      </div>
+      <div class="cloud-setup" id="cloud-setup">
+        <p class="hint">连上以后，iPad、Mac、手机用的是同一份复习卡，在哪台设备上存的卡，其他设备打开页面就能看到；练到第几集也会跟着走。每台设备连接一次，用同一个令牌。</p>
+        <details class="more">
+          <summary>怎么拿到令牌（第一次用看这里）</summary>
+          <ol class="more-body steps small">
+            <li>在 Mac 上打开 <a id="token-link" href="https://github.com/settings/tokens/new" target="_blank" rel="noopener">GitHub 新建令牌页面</a>，登录你的 GitHub 账号。</li>
+            <li>Note 已经填好「口语阶梯」，下面只勾了 <b>gist</b>。Expiration 选 <b>No expiration</b>（或一年）。</li>
+            <li>拉到最下面点 Generate token，复制 <code>ghp_</code> 开头的那串字符。</li>
+            <li>贴到下面点「连接」。这串字符只显示一次，建议存到备忘录或密码管理里，iPad、手机连接时还要用。不要发给别人。</li>
+          </ol>
+        </details>
+        <div class="save-row">
+          <input id="cloud-token" type="password" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="粘贴令牌（ghp_ 开头）" aria-label="GitHub 令牌">
+          <button class="btn" id="cloud-connect" type="button" disabled>连接</button>
+        </div>
       </div>
     </div>
     <p class="muted small" id="nb-note"></p>
@@ -922,13 +974,14 @@ function normalizeState(){
   if (![`new`,`replay`,`review`].includes(state.kind)) state.kind = `new`;
   if (!TOPICS.some(t => t.id === state.topic)) state.topic = `auto`;
   if (typeof state.custom !== `string`) state.custom = ``;
+  state.zh = state.zh === undefined ? true : !!state.zh; state.easy = !!state.easy;
   if (typeof state.paste !== `string`) state.paste = ``;
   if (![`practice`,`notebook`,`guide`].includes(state.tab)) state.tab = `practice`;
   if (EPISODES[state.ep - 1].lv !== state.level) state.ep = EPISODES.findIndex(e => e.lv === state.level) + 1;
 }
 normalizeState();
 let saveTimer = null;
-function save(){ try { localStorage.setItem(KEY, JSON.stringify(state)); } catch(e) {} }
+function save(){ try { localStorage.setItem(KEY, JSON.stringify(state)); } catch(e) {} noteSettingsChange(); }
 function saveSoon(){ clearTimeout(saveTimer); saveTimer = setTimeout(save, 400); }
 
 /* ---------- notebook storage: this device only (localStorage) ---------- */
@@ -941,13 +994,14 @@ function newId(){ return `s-` + Date.now().toString(36) + `-` + Math.random().to
 
 function addSave(body){
   store.local.push(Object.assign({ id: newId() }, body));
-  const ok = persistLocal(); refreshData();
+  const ok = persistLocal(); refreshData(); scheduleSync();
   return ok;
 }
 function removeSave(id){
   const i = store.local.findIndex(s => s.id === id);
   if (i < 0) return false;
-  store.local.splice(i, 1); persistLocal(); refreshData();
+  store.local.splice(i, 1); sync.deleted[id] = new Date().toISOString();
+  persistLocal(); persistSync(); refreshData(); scheduleSync();
   return true;
 }
 
@@ -993,7 +1047,167 @@ function importText(text){
     const { paste, tab, ...rest } = settings;
     Object.assign(state, rest); normalizeState(); save();
   }
+  if (fresh.length) { fresh.forEach(c => { delete sync.deleted[c.id]; }); persistSync(); scheduleSync(); }
   return { added: fresh.length, skipped, invalid, settings: !!settings };
+}
+
+/* ---------- cloud sync: one secret GitHub Gist shared by all devices ----------
+   Cards merge by id (deletions are remembered as tombstones); the practice selection
+   follows whichever device changed it last. The token stays on this device only. */
+const SYNC_KEY = `speaking-ladder-sync-v1`;
+const SYNC_FILE = `speaking-ladder.json`;
+const SYNC_KEYS = [`mode`,`kind`,`level`,`ep`,`topic`,`custom`,`zh`,`easy`];
+const GH = `https://api.github.com`;
+const sync = { token:``, gistId:``, deleted:{}, settingsAt:null, lastSync:null };
+try { const o = JSON.parse(localStorage.getItem(SYNC_KEY) || `null`); if (o && typeof o === `object`) Object.assign(sync, o); } catch(e) {}
+if (!sync.deleted || typeof sync.deleted !== `object`) sync.deleted = {};
+function persistSync(){ try { localStorage.setItem(SYNC_KEY, JSON.stringify(sync)); } catch(e) {} }
+
+const syncedSettings = () => Object.fromEntries(SYNC_KEYS.map(k => [k, state[k]]));
+let lastSyncedJson = JSON.stringify(syncedSettings());
+/* called from save(): stamp the selection when it really changed, so the newest device wins */
+function noteSettingsChange(){
+  const j = JSON.stringify(syncedSettings());
+  if (j === lastSyncedJson) return;
+  lastSyncedJson = j; sync.settingsAt = new Date().toISOString(); persistSync(); scheduleSync();
+}
+
+const byTime = (x, y) => String(x.at).localeCompare(String(y.at)) || String(x.id).localeCompare(String(y.id));
+/* snapshot = { cards, deleted, settings, settingsAt } */
+function mergeSync(a, b){
+  const deleted = Object.assign({}, a.deleted, b.deleted);
+  const byId = new Map();
+  a.cards.concat(b.cards).forEach(c => { if (c && c.id && !deleted[c.id] && !byId.has(c.id)) byId.set(c.id, c); });
+  const newer = String(b.settingsAt || ``) > String(a.settingsAt || ``) ? b : a;
+  return { cards: [...byId.values()].sort(byTime), deleted, settings: newer.settings, settingsAt: newer.settingsAt };
+}
+function syncBody(s){
+  const deleted = Object.fromEntries(Object.keys(s.deleted).sort().map(k => [k, s.deleted[k]]));
+  return JSON.stringify({ app: EXPORT_APP, version: 1, settingsAt: s.settingsAt, settings: s.settings, deleted, cards: s.cards.slice().sort(byTime) }, null, 1);
+}
+function readRemote(text){
+  let d = null;
+  try { d = JSON.parse(text); } catch(e) {}
+  if (!d || typeof d !== `object`) d = {};
+  const cards = (Array.isArray(d.cards) ? d.cards : []).map(cleanSave).filter(Boolean);
+  const deleted = d.deleted && typeof d.deleted === `object` && !Array.isArray(d.deleted) ? d.deleted : {};
+  const settings = d.settings && typeof d.settings === `object` && !Array.isArray(d.settings)
+    ? Object.fromEntries(SYNC_KEYS.filter(k => k in d.settings).map(k => [k, d.settings[k]])) : null;
+  return { cards, deleted, settings, settingsAt: typeof d.settingsAt === `string` ? d.settingsAt : null };
+}
+
+/* retry: try again in a minute (network / GitHub trouble); fatal: the token itself is the problem */
+class SyncError extends Error { constructor(msg, { retry = true, status = 0 } = {}){ super(msg); this.retry = retry; this.status = status; } }
+const OFFLINE = `没联网，联网后会自动同步。`;
+let ghToken = ``; // token of the sync in flight, so a disconnect mid-sync can't mix accounts
+async function gh(path, opts = {}){
+  let res;
+  try {
+    res = await fetch(GH + path, Object.assign({ cache: `no-store` }, opts, {
+      headers: Object.assign({ Authorization: `Bearer ${ghToken}`, Accept: `application/vnd.github+json` }, opts.body ? { 'Content-Type': `application/json` } : {})
+    }));
+  } catch(e) { throw new SyncError(OFFLINE); }
+  if (res.status === 401) throw new SyncError(`令牌无效或已过期，请检查后重新粘贴。`, { retry: false, status: 401 });
+  if (res.status === 403 && res.headers.get(`x-ratelimit-remaining`) === `0`) throw new SyncError(`GitHub 请求太频繁，过一会儿会再试。`);
+  if (!res.ok) throw new SyncError(`GitHub 暂时连不上（${res.status}），过一会儿会再试。`, { status: res.status });
+  return res.json();
+}
+async function findGist(){
+  for (let p = 1; p <= 10; p++) {
+    const list = await gh(`/gists?per_page=100&page=${p}`);
+    const hit = list.find(g => g.files && g.files[SYNC_FILE]);
+    if (hit) return hit.id;
+    if (list.length < 100) return ``;
+  }
+  return ``;
+}
+async function readGist(id){
+  const g = await gh(`/gists/${id}`);
+  const f = g.files && g.files[SYNC_FILE];
+  if (!f) return ``;
+  if (!f.truncated) return f.content || ``;
+  let r;
+  try { r = await fetch(f.raw_url, { cache: `no-store` }); } catch(e) { throw new SyncError(OFFLINE); }
+  if (!r.ok) throw new SyncError(`GitHub 暂时连不上（${r.status}），过一会儿会再试。`, { status: r.status });
+  return r.text();
+}
+
+let syncing = false, syncAgain = false, syncTimer = null, retryTimer = null, syncMsg = ``, syncFatal = false;
+const ABORT = new Error(`aborted`);
+function scheduleSync(){ if (!sync.token) return; clearTimeout(syncTimer); syncTimer = setTimeout(syncNow, 2000); }
+/* resolves true when the sync reached GitHub and finished */
+async function syncNow(){
+  if (!sync.token) return false;
+  clearTimeout(syncTimer); syncTimer = null; clearTimeout(retryTimer); retryTimer = null;
+  if (syncing) { syncAgain = true; return false; }
+  syncing = true; syncMsg = `同步中…`; syncFatal = false; renderCloud();
+  ghToken = sync.token;
+  const live = () => { if (sync.token !== ghToken) throw ABORT; };
+  let ok = false;
+  try {
+    let text = ``;
+    if (sync.gistId) {
+      try { text = await readGist(sync.gistId); live(); }
+      catch(e) { if (e.status !== 404) throw e; live(); sync.gistId = ``; } // deleted on GitHub
+    }
+    // first connect, or ours was deleted: use the one another device made before creating a new one
+    if (!sync.gistId) { const id = await findGist(); live(); sync.gistId = id; if (id) { text = await readGist(id); live(); } }
+    // never overwrite cloud data we can't read
+    if (text.trim()) { try { JSON.parse(text); } catch(e) { throw new SyncError(`云端的复习卡文件读不懂（可能被手动改过），这次没有同步，也没有改动它。`, { retry: false }); } }
+    if (saveTimer) { clearTimeout(saveTimer); saveTimer = null; save(); } // stamp edits still waiting in saveSoon
+    const remote = readRemote(text);
+    if (!remote.settings && !sync.settingsAt) sync.settingsAt = new Date().toISOString(); // first device seeds the selection
+    // read local, merge and apply with no await in between, so edits made meanwhile are never lost
+    const local = { cards: store.local, deleted: sync.deleted, settings: syncedSettings(), settingsAt: sync.settingsAt };
+    const merged = mergeSync(local, remote);
+    const cardsChanged = JSON.stringify(merged.cards) !== JSON.stringify(store.local.slice().sort(byTime));
+    store.local = merged.cards; sync.deleted = merged.deleted; persistLocal();
+    let settingsChanged = false;
+    if (merged.settingsAt !== sync.settingsAt) {
+      Object.assign(state, merged.settings);
+      normalizeState();
+      settingsChanged = JSON.stringify(syncedSettings()) !== lastSyncedJson;
+      lastSyncedJson = JSON.stringify(syncedSettings()); sync.settingsAt = merged.settingsAt;
+      try { localStorage.setItem(KEY, JSON.stringify(state)); } catch(e) {}
+    }
+    persistSync();
+    if (settingsChanged) { syncControls(); renderAll(); centerStep(); }
+    else if (cardsChanged) refreshData();
+    const body = syncBody(merged);
+    if (!sync.gistId) {
+      const g = await gh(`/gists`, { method: `POST`, body: JSON.stringify({ description: `口语阶梯复习卡（speaking-ladder 自动同步，请勿手动修改）`, public: false, files: { [SYNC_FILE]: { content: body } } }) })
+        .catch(e => { if (e.status === 403 || e.status === 404 || e.status === 422) throw new SyncError(`这个令牌没有 gist 权限。新建令牌时要勾上 gist。`, { retry: false, status: e.status }); throw e; });
+      live(); sync.gistId = g.id;
+    } else if (body !== text) {
+      await gh(`/gists/${sync.gistId}`, { method: `PATCH`, body: JSON.stringify({ files: { [SYNC_FILE]: { content: body } } }) });
+      live();
+    }
+    sync.lastSync = new Date().toISOString(); persistSync();
+    syncMsg = ``; ok = true;
+  } catch(e) {
+    if (e === ABORT) syncMsg = ``;
+    else {
+      syncMsg = e instanceof SyncError ? e.message : `同步出错了，过一会儿会再试。`;
+      syncFatal = e instanceof SyncError && !e.retry;
+      if (!syncFatal && sync.token) retryTimer = setTimeout(syncNow, 60000);
+    }
+  } finally {
+    syncing = false; renderCloud();
+    if (syncAgain) { syncAgain = false; syncNow(); }
+  }
+  return ok;
+}
+/* the token is kept only if it works; otherwise the setup panel stays open with the reason */
+async function connectCloud(token){
+  sync.token = token.trim(); sync.gistId = ``; sync.lastSync = null; persistSync();
+  const ok = await syncNow();
+  if (!ok && syncFatal) { sync.token = ``; persistSync(); renderCloud(); }
+  return ok;
+}
+function disconnectCloud(){
+  clearTimeout(syncTimer); syncTimer = null; clearTimeout(retryTimer); retryTimer = null;
+  sync.token = ``; sync.gistId = ``; sync.lastSync = null; persistSync(); syncMsg = ``;
+  renderCloud(); renderNotebook();
 }
 
 /* Copy inside the click handler. If the clipboard API refuses, select all text so the user can copy by hand. */
@@ -1261,7 +1475,7 @@ function levelGroups(lv){
 function renderNotebook(){
   const all = allSaves();
   const total = itemsOf(all, `E`).length;
-  const where = `复习卡存在这台设备上。`;
+  const where = sync.token ? `复习卡存在这台设备上，并通过云同步和你的其他设备保持一致。` : `复习卡存在这台设备上。`;
   $(`nb-note`).textContent = `${where}全部共 ${total} 个表达。打开「遮住英文自测」后，看中文想英文，点一下显示答案。`;
   $(`nb-scope`).textContent = state.nbAll ? `只看 Lv${state.level}` : `看全部级别`;
   document.getElementById(`nb`).classList.toggle(`quiz`, !!state.quiz);
@@ -1598,9 +1812,7 @@ $(`imp-btn`).addEventListener(`click`, () => {
   try { r = importText($(`imp-in`).value); }
   catch(e) { st.textContent = `没有导入：${e.message}已有的复习卡没有改动。`; return; }
   $(`imp-in`).value = ``; $(`imp-btn`).disabled = true;
-  $(`opt-zh`).checked = !!state.zh;
-  $(`opt-easy`).checked = !!state.easy;
-  renderAll(); centerStep();
+  syncControls(); renderAll(); centerStep();
   const parts = [r.added ? `导入了 ${r.added} 组复习卡。` : `没有新的复习卡。`];
   if (r.skipped) parts.push(`${r.skipped} 组这台设备上已经有了，已跳过。`);
   if (r.invalid) parts.push(`${r.invalid} 组格式不对，没导入。`);
@@ -1608,12 +1820,47 @@ $(`imp-btn`).addEventListener(`click`, () => {
   st.textContent = parts.join(``);
 });
 
-$(`opt-zh`).checked = !!state.zh;
-$(`opt-easy`).checked = !!state.easy;
+/* cloud sync panel */
+function syncControls(){ $(`opt-zh`).checked = !!state.zh; $(`opt-easy`).checked = !!state.easy; }
+function fmtTime(iso){
+  const d = new Date(iso);
+  if (isNaN(d)) return ``;
+  const hm = `${String(d.getHours()).padStart(2, `0`)}:${String(d.getMinutes()).padStart(2, `0`)}`;
+  return d.toDateString() === new Date().toDateString() ? hm : `${fmtDate(iso)} ${hm}`;
+}
+function renderCloud(){
+  const on = !!sync.token;
+  $(`cloud-on`).hidden = !on; $(`cloud-setup`).hidden = on;
+  const st = $(`cloud-status`);
+  st.dataset.state = syncMsg && !syncing ? `error` : ``;
+  st.textContent = !on ? (syncMsg || `未连接，复习卡只在这台设备上。`) : syncMsg || (sync.lastSync ? `已同步 · ${fmtTime(sync.lastSync)}` : `还没同步`);
+  $(`cloud-sync`).disabled = syncing;
+}
+$(`token-link`).href = `https://github.com/settings/tokens/new?scopes=gist&description=` + encodeURIComponent(`口语阶梯`);
+$(`cloud-token`).addEventListener(`input`, e => { $(`cloud-connect`).disabled = !e.target.value.trim(); });
+$(`cloud-connect`).addEventListener(`click`, async () => {
+  const v = $(`cloud-token`).value.trim(); if (!v) return;
+  $(`cloud-connect`).disabled = true;
+  const ok = await connectCloud(v);
+  if (ok || sync.token) $(`cloud-token`).value = ``; // kept on a bad token so it can be fixed
+  $(`cloud-connect`).disabled = !$(`cloud-token`).value.trim();
+  renderNotebook();
+});
+$(`cloud-sync`).addEventListener(`click`, () => syncNow());
+$(`cloud-off`).addEventListener(`click`, disconnectCloud);
+/* catch up when coming back from ChatGPT or another device; flush pending changes when leaving */
+document.addEventListener(`visibilitychange`, () => {
+  if (document.visibilityState === `visible`) syncNow();
+  else if (syncTimer) syncNow();
+});
+window.addEventListener(`online`, () => syncNow());
+
+syncControls();
 $(`paste`).value = state.paste || ``;
 if (state.paste.trim()) $(`save`).open = true;
-renderTab(); renderMap(); renderToc(); renderAll();
+renderTab(); renderMap(); renderToc(); renderAll(); renderCloud();
 requestAnimationFrame(centerStep);
+syncNow();
 
 if (`serviceWorker` in navigator) {
   window.addEventListener(`load`, () => { navigator.serviceWorker.register(`./sw.js`).catch(() => {}); });
