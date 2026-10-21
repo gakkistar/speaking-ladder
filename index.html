@@ -200,7 +200,7 @@ header{display:flex;flex-direction:column;gap:12px}
 .tabbar svg{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 .tabbar button[aria-selected="true"]{color:var(--accent);font-weight:600}
 @media (min-width:768px){
-  .tabbar{position:sticky;top:0;bottom:auto;justify-content:center;gap:8px;border-top:0;border-bottom:1px solid var(--line);padding:0}
+  .tabbar{position:sticky;top:env(safe-area-inset-top,0px);bottom:auto;justify-content:center;gap:8px;border-top:0;border-bottom:1px solid var(--line);padding:0}
   .tabbar button{flex:0 0 auto;flex-direction:row;gap:6px;padding:12px 20px;font-size:14px}
   .tabbar svg{width:18px;height:18px}
   .wrap{padding-block:32px 72px}
@@ -337,8 +337,8 @@ footer{font-size:12px;color:var(--muted)}
     <details class="more save" id="save">
       <summary>练完了？存复习卡</summary>
       <div class="more-body">
-        <p class="hint">在 ChatGPT 里退出语音，打字 wrap up。它会在最后给一个代码块，点代码块的复制按钮，贴到下面。</p>
-        <textarea id="paste" spellcheck="false" aria-label="贴入复习卡" placeholder="E: I've never been to Xi'an | 我从没去过西安&#10;G: 现在完成时 | Unit 7&#10;S: I have went there | I've been there"></textarea>
+        <p class="hint">在 ChatGPT 里退出语音，打字 wrap up，它会给一段简短的分析。长按这条回复点「复制」，整段贴到下面就行，页面会自己挑出「下次考我」的句子和改过的错句。</p>
+        <textarea id="paste" spellcheck="false" aria-label="贴入复习卡" placeholder="我平时步行上班。 → I walk to the office.&#10;I'm walk to office → I walk to the office. → 习惯用一般现在时（Murphy Unit 2）"></textarea>
         <div class="save-row">
           <button class="btn" id="save-btn" type="button" disabled>存到第 1 集</button>
           <span class="status" id="save-status" aria-live="polite"></span>
@@ -389,7 +389,7 @@ footer{font-size:12px;color:var(--muted)}
 
   <div class="principles">
     <div><b>宁低勿高</b><span>每一级的标准是说起来不费劲。觉得难，就往回退一级。</span></div>
-    <div><b>没有任务</b><span>不打卡，不考核。30 分钟只是参考，一集演几遍都行。</span></div>
+    <div><b>没有任务</b><span>不打卡，不考核。每次 15 分钟左右就够，一集演几遍都行。</span></div>
     <div><b>先回忆，再开口</b><span>每次开头 AI 先用中文提示，让你自己想起英文，比重读一遍记得牢。</span></div>
   </div>
 
@@ -398,11 +398,11 @@ footer{font-size:12px;color:var(--muted)}
     <ol class="steps">
       <li>选好一集和这次的类型（新演、重演或本级复习），点「复制提示词」。</li>
       <li>打开 ChatGPT，新建一个对话，粘贴后发送。它回了第一句之后，在同一个对话里点语音按钮，开始说。</li>
-      <li>主线的一次练习分三段：先回忆，再演场景，最后聊你自己或者复述。想提前进入下一段，说 “next part”。</li>
-      <li>想结束时退出语音，在对话框里打字 “wrap up”。它会给一段中文总结和一个代码块。</li>
-      <li>复制代码块，贴到本页「存复习卡」，点保存。下次重演或复习时，提示词会自动带上这些卡，AI 开头会先考你。</li>
+      <li>一次练习 15 分钟左右，分三段：先小测上次的句子，再演场景，最后聊你自己或者复述。AI 会自己过渡，你不用管；想提前进入下一段，说 “next part”。</li>
+      <li>想结束时退出语音，在对话框里打字 “wrap up”。它会给一段一屏左右的中文分析：做得好的地方、最该改的 5 个错误（标了 Murphy 单元）、3 个实用表达，最后是「下次考我」。</li>
+      <li>长按这条回复复制，贴到本页「存复习卡」，点保存。下次不管练哪一集，提示词都会带上这些句子，AI 开头先用中文考你。</li>
     </ol>
-    <p class="aside">AI 说得太快或太长，直接说 “slower” 或 “shorter”。一集演得不满意，就再演一遍，每次走向都会不一样。想要更细的反馈，可以把对话文字复制给 Claude 逐句看。</p>
+    <p class="aside">听不懂就说 “Pardon?” 或 “Could you say that again more slowly?”，它会放慢、换简单的说法；两次还听不懂，它会用几个字的中文告诉你意思。AI 说得太快或太长，直接说 “slower” 或 “shorter”。一集演得不满意，就再演一遍，每次走向都会不一样。想要更细的反馈，可以把对话文字复制给 Claude 逐句看。</p>
   </section>
 
   <section aria-labelledby="h-up">
@@ -416,7 +416,7 @@ footer{font-size:12px;color:var(--muted)}
       <li>回答时不太需要停下来想、能连着说三四句，就可以试试下一级。</li>
       <li>状态不好的日子，勾上「今天想轻松点」。隔了几天没练，回来从觉得舒服的地方开始。</li>
     </ul>
-    <p class="aside">为什么要重演：同一个口语任务重复做，第二次往往比第一次更流利、更准确，因为内容已经熟了，注意力才腾得出来管表达。为什么开头要考：自己想起来比再看一遍记得牢，隔几天再想一次又会更牢。新演的开头也会抽两三张更早的卡，旧的表达就不会慢慢丢掉。</p>
+    <p class="aside">为什么要重演：同一个口语任务重复做，第二次往往比第一次更流利、更准确，因为内容已经熟了，注意力才腾得出来管表达。为什么开头要考：自己想起来比再看一遍记得牢，隔几天再想一次又会更牢。每次开头先考上一次存的句子，再抽两句更早的，旧的表达就不会慢慢丢掉。</p>
   </section>
 
   <section aria-labelledby="h-story">
@@ -904,6 +904,8 @@ const UNIT_MAP = [
   `137–145 phrasal verbs`
 ];
 
+const HELP_PHRASES = [`Pardon?`, `Could you say that again more slowly?`, `What does "…" mean?`, `How do I say "…" in English?`];
+
 const KIND_LABEL = { new:`新演`, replay:`重演`, review:`本级复习`, free:`自由聊` };
 
 /* ---------- state ---------- */
@@ -1009,24 +1011,63 @@ function copyFrom(el, onDone, onFail){
 }
 
 /* ---------- card helpers ---------- */
+/* Reads the wrap-up analysis pasted from ChatGPT:
+   "中文 → English"                       -> E (expression to quiz next time)
+   "what I said → better → 解释（Unit 2）"  -> S (fixed sentence) + G (grammar point)
+   The older "E: … | …" card format still works. */
+const CJK = /[㐀-鿿]/;
+const LATIN = /[A-Za-z]/;
+function cleanPart(x){
+  const t = String(x || ``).replace(/\*\*|__|`/g, ``).replace(/^[㐀-鿿]{1,8}\s*[:：]\s*/, ``).trim();
+  const q = t.match(/^["“]([^"“”]*)["”]$/);
+  return (q ? q[1] : t).trim();
+}
 function parseCards(text){
   const items = [];
-  String(text || ``).split(/\r?\n/).forEach(raw => {
-    let line = raw.trim();
+  const push = (t, a, b) => { a = cleanPart(a); b = cleanPart(b); if (a) items.push({ t, a: a.slice(0, 240), b: b.slice(0, 240) }); };
+  const lines = String(text || ``).split(/\r?\n/).map(x => x.trim());
+  const isRule = x => /^\|[\s:|-]+\|$/.test(x);
+  lines.forEach((raw, i) => {
+    let line = raw;
     if (!line || /^`{3}/.test(line)) return;
-    line = line.replace(/^(?:[-*•]|\d+[.)])\s+/, ``);
-    let t, rest;
+    // "- " / "* " need a space so "**bold**" keeps its stars for cleanPart
+    line = line.replace(/^>\s*/, ``).replace(/^(?:[-*]\s+|[•·]\s*|\d+[.)、．]\s*)/, ``).trim();
     const m = line.match(/^([EGSegs])\s*[:：]\s*(.+)$/);
-    if (m) { t = m[1].toUpperCase(); rest = m[2]; }
-    else if (/[|｜]/.test(line)) { t = `E`; rest = line; }
-    else return;
-    const parts = rest.split(/\s*[|｜]\s*/);
-    const a = (parts[0] || ``).trim();
-    const b = parts.slice(1).join(` / `).trim();
-    if (!a) return;
-    items.push({ t, a: a.slice(0, 240), b: b.slice(0, 240) });
+    if (m) {
+      const p = m[2].split(/\s*[|｜]\s*/);
+      push(m[1].toUpperCase(), p[0], p.slice(1).join(` / `));
+      return;
+    }
+    let parts;
+    if (/^\|.*\|$/.test(line)) {
+      if (isRule(line) || isRule(lines[i + 1] || ``)) return; // separator row, or the header above it
+      parts = line.slice(1, -1).split(`|`);
+    } else if (/→|->|⇒|=>/.test(line)) {
+      parts = line.split(/\s*(?:→|->|⇒|=>)\s*/);
+    } else if (/[|｜]/.test(line)) {
+      parts = line.split(/\s*[|｜]\s*/);
+    } else return;
+    parts = parts.map(cleanPart).filter(Boolean);
+    if (parts.length === 2) {
+      const [x, y] = parts;
+      if (!CJK.test(x) && !CJK.test(y)) { if (LATIN.test(x) && LATIN.test(y)) push(`S`, x, y); return; }
+      let en, zh;
+      if (CJK.test(y) && !CJK.test(x)) { en = x; zh = y; } else { zh = x; en = y; }
+      if (!LATIN.test(en)) return;
+      push(`E`, en, zh);
+    } else if (parts.length >= 3) {
+      const [said, better, ...rest] = parts;
+      if (!LATIN.test(said) || !LATIN.test(better)) return;
+      push(`S`, said, better);
+      const note = rest.join(` `);
+      const u = note.match(/Unit\s*(\d+(?:\s*[–-]\s*\d+)?)/i);
+      if (u) {
+        const point = note.replace(/[（(]?\s*(?:Murphy\s*)?Unit\s*\d+(?:\s*[–-]\s*\d+)?\s*[)）]?/i, ``).replace(/[，,。;；\s]+$/, ``);
+        push(`G`, point || `语法`, `Unit ${u[1].replace(/\s+/g, ``)}`);
+      }
+    }
   });
-  return items.slice(0, 24);
+  return items.slice(0, 30);
 }
 function itemsOf(saves, type){
   const seen = new Set(), out = [];
@@ -1057,6 +1098,21 @@ function olderSaves(){
   return allSaves().filter(s => (s.ep > 0 && s.ep < state.ep) || (s.ep === 0 && s.lv < state.level));
 }
 const quizLine = it => `- ${it.b || `(no Chinese given)`} → ${it.a}`;
+const fixedLine = ss => `Sentences I got wrong last time: ${ss.map(s => `"${s.a}" → "${s.b}"`).join(`; `)}. Later in the session, create a chance for me to say them correctly, without pointing it out.`;
+const byNewest = (x, y) => String(y.at).localeCompare(String(x.at));
+function latestSave(){ return allSaves().slice().sort(byNewest)[0] || null; }
+function uniqItems(list){ const seen = new Set(); return list.filter(it => { const k = String(it.a).toLowerCase(); if (seen.has(k)) return false; seen.add(k); return true; }); }
+/* what was saved after the most recent session: quizzed at the start of the next one, whatever it is */
+function carryItems(n){ const s = latestSave(); return s ? itemsOf([s], `E`).slice(0, n) : []; }
+function carrySentences(n){ const s = latestSave(); return s ? itemsOf([s], `S`).slice(0, n) : []; }
+/* a couple of older expressions, so earlier material keeps coming back */
+function spacedItems(n, exclude){
+  const last = latestSave();
+  const skip = new Set((exclude || []).map(it => String(it.a).toLowerCase()));
+  const pool = itemsOf(olderSaves().filter(s => s !== last), `E`).filter(it => !skip.has(String(it.a).toLowerCase()));
+  return pick(pool, n, `spaced|${state.mode}|${state.kind}|${state.ep}|${state.level}`);
+}
+function replaySaves(){ const last = latestSave(); const eps = savesForEp(state.ep); return last && !eps.includes(last) ? [last].concat(eps) : eps; }
 
 /* ---------- rendering ---------- */
 const $ = id => document.getElementById(id);
@@ -1071,10 +1127,13 @@ function renderMode(){
   $(`topic-field`).hidden = story;
   const L = state.level, n = state.ep;
   let note = ``;
-  if (story && state.kind === `new`) note = `第一次演这一集。建议从第 1 集开始，就算觉得简单，也先演一两次，让开口这件事变轻松。`;
+  if (story && state.kind === `new`) {
+    const k = carryItems(6).length;
+    note = k ? `第一次演这一集。开头会先用中文考你上次存的 ${k} 句，再开始演。` : `第一次演这一集。建议从第 1 集开始，就算觉得简单，也先演一两次，让开口这件事变轻松。`;
+  }
   if (story && state.kind === `replay`) {
-    const c = itemsOf(savesForEp(n), `E`).length;
-    note = c ? `隔一两天再演第 ${n} 集。开头 AI 会先用中文考你这一集存下的 ${c} 张卡，场景也会换个走向。` : `第 ${n} 集还没有存复习卡。可以照样重演，开头会改成让你回忆上次学到的说法。`;
+    const c = Math.min(8, itemsOf(replaySaves(), `E`).length);
+    note = c ? `隔一两天再演第 ${n} 集。开头 AI 会先用中文考你 ${c} 句（这一集和上一次存的），场景也会换个走向。` : `还没有存复习卡。可以照样重演，开头会改成让你回忆上次学到的说法。`;
   }
   if (story && state.kind === `review`) {
     const c = itemsOf(savesForLevel(L), `E`).length;
@@ -1117,6 +1176,7 @@ function renderCard(){
       <p>${esc(L.can)}</p>
       <div class="lc-row"><span class="lc-label">Murphy 单元</span><div class="chips">${L.units.map(u => `<span class="unit"><code>U${esc(u[0])}</code>${esc(u[1])}</span>`).join(``)}</div></div>
       <div class="lc-row"><span class="lc-label">开口句式</span><ul class="frames">${L.frames.map(f => `<li>${esc(f)}</li>`).join(``)}</ul></div>
+      <div class="lc-row"><span class="lc-label">听不懂时</span><ul class="frames">${HELP_PHRASES.map(f => `<li>${esc(f)}</li>`).join(``)}</ul></div>
       <div class="lc-row"><span class="lc-label">${state.mode === `story` ? `自由聊话题` : `可以聊`}</span><p>${esc(L.topics)}</p></div>
     </div>`;
 }
@@ -1165,10 +1225,10 @@ function renderSaveBox(){
   const st = $(`save-status`);
   if (!st.dataset.sticky) {
     if (!$(`paste`).value.trim()) st.textContent = ``;
-    else if (!items.length) st.textContent = `还没认出卡片。每行要以 E:、G: 或 S: 开头，或者用 | 分开英文和中文。`;
+    else if (!items.length) st.textContent = `还没认出句子。贴入的内容里要有「中文 → 英文」这样带箭头的行。`;
     else {
       const c = { E:0, G:0, S:0 }; items.forEach(i => c[i.t]++);
-      st.textContent = `认出 ${c.E} 个表达、${c.G} 个语法点、${c.S} 个句子。`;
+      st.textContent = `认出 ${c.E} 个要考的表达、${c.S} 个改过的句子、${c.G} 个语法点。`;
     }
   }
 }
@@ -1209,7 +1269,7 @@ function renderNotebook(){
   let html = ``;
   if (state.nbAll) { for (let lv = 1; lv <= 11; lv++) html += levelGroups(lv); }
   else html = levelGroups(state.level);
-  $(`nb`).innerHTML = html || `<div class="empty">${state.nbAll ? `还没有复习卡。` : `Lv${state.level} 还没有复习卡。`}练完后在上面「存复习卡」里贴入 wrap up 给的代码块，卡片会出现在这里。</div>`;
+  $(`nb`).innerHTML = html || `<div class="empty">${state.nbAll ? `还没有复习卡。` : `Lv${state.level} 还没有复习卡。`}练完后在「练习」页的「存复习卡」里贴入 wrap up 的分析，卡片会出现在这里。</div>`;
   if (!$(`exp-panel`).hidden) $(`exp-out`).value = exportText();
 }
 
@@ -1229,39 +1289,33 @@ function talkRules(L, story){
   const r = [
     `HOW TO TALK WITH ME`,
     story ? `1. Keep your turns short, also when you're in character: one to three sentences, then ask me ONE question.` : `1. Keep your turns short: one to three sentences, then ask me ONE question.`,
-    `2. Speak a little slowly and use common, everyday words. Stay at my level.`,
-    story ? `3. Question style for my level: ${L.ask}` : `3. ${L.ask}`,
-    `4. I may pause for a long time while I think. Wait for me. If I stay silent, don't change the topic; give me a sentence starter instead, for example: "You could start with: ${L.frames[0]}"`,
-    `5. ${zhRule}`,
-    `6. Use today's grammar naturally in your own sentences so I can hear it, and give me chances to use it. Don't explain grammar unless I ask.`,
-    story ? `7. Corrections: never interrupt me. When I finish, if there was an important mistake, say my idea back correctly once, in a natural way (in character during the scene), and carry on. At most one correction per turn. Let small mistakes go.` : `7. Corrections: never interrupt me. When I finish, if there was an important mistake, say my idea back correctly once, in a natural way, and carry on. At most one correction per turn. Let small mistakes go.`,
-    `8. Be friendly and honest. No over-the-top praise.`,
-    `9. If I say "slower", "shorter" or "easier", adjust straight away.`
+    `2. Speak English from your very first sentence. Speak a little slowly and use common, everyday words. Stay at my level.`,
+    `3. If I say "Pardon?", "Sorry?", "Could you say that again?" or "What does ... mean?", say it again more slowly, in simpler words. If I still don't understand after the second try, tell me the meaning in a few Chinese words, then carry on in English.`,
+    story ? `4. Question style for my level: ${L.ask}` : `4. ${L.ask}`,
+    `5. I may pause for a long time while I think. Wait for me. If I stay silent, don't change the topic; give me a sentence starter instead, for example: "You could start with: ${L.frames[0]}"`,
+    `6. ${zhRule}`,
+    `7. Use today's grammar naturally in your own sentences so I can hear it, and give me chances to use it. Don't explain grammar unless I ask.`,
+    story ? `8. Corrections: never interrupt me. When I finish, if there was an important mistake, say my idea back correctly once, in a natural way (in character during the scene), and carry on. At most one correction per turn. Let small mistakes go.` : `8. Corrections: never interrupt me. When I finish, if there was an important mistake, say my idea back correctly once, in a natural way, and carry on. At most one correction per turn. Let small mistakes go.`,
+    `9. Be friendly and honest. No over-the-top praise.`,
+    `10. If I say "slower", "shorter" or "easier", adjust straight away and keep it that way for the rest of the session.`
   ];
-  if (state.easy) r.push(`10. Today I want it extra easy: use very short sentences, ask mainly yes/no or either/or questions, and only correct me when my meaning is unclear.`);
+  if (state.easy) r.push(`11. Today I want it extra easy: use very short sentences, ask mainly yes/no or either/or questions, and only correct me when my meaning is unclear.`);
   return r;
 }
 function tail(){
   return [
     `WRAP-UP`,
     `If I say "wrap up" (or "结束") while we're talking in voice, just say goodbye in one short sentence. I'll leave voice mode and type "wrap up" in the chat.`,
-    `When I type "wrap up", write a short summary in Chinese, with English examples:`,
-    `- 3 to 5 useful expressions from today (ones I used or was looking for)`,
-    `- Up to 2 grammar points worth a look, each with its Murphy unit from the map below (if you're not sure of the unit, just name the grammar point)`,
-    `- 1 sentence of mine, rewritten to sound more natural`,
-    `Then give me review cards in ONE code block, so I can copy them in one go. Use exactly this format, one item per line:`,
-    `E: <English expression> | <Chinese meaning>`,
-    `G: <grammar point, in Chinese> | Unit <number>`,
-    `S: <my original sentence> | <a more natural version>`,
-    `Keep it short: no scores, no homework.`,
+    `When I type "wrap up" (or "分析一下"), analyse today's session in Chinese, in four short parts, about one screen in total:`,
+    `1. 做得好的地方: one or two sentences.`,
+    `2. 最该改的 5 个错误: one per line, written as "what I said → a more natural version → a one-sentence explanation (Murphy Unit X)". Only pick mistakes that change the meaning or keep coming back. Ignore pauses, repeated words and voice-transcription errors; if you're not sure I really said it, leave it out. If you're not sure of the unit, leave the unit out.`,
+    `3. 今天最实用的 3 个表达, each with its Chinese meaning.`,
+    `4. 下次考我: merge parts 2 and 3 into 6 to 8 lines, one per line, written as "Chinese → English".`,
+    `Write parts 2 and 4 as plain lines, not tables. No scores, no homework.`,
     ``,
     `MURPHY UNIT MAP (English Grammar in Use, 5th edition)`,
     ...UNIT_MAP
   ];
-}
-function olderQuiz(n){
-  const picks = pick(itemsOf(olderSaves(), `E`), n, `older|${state.mode}|${state.kind}|${state.ep}|${state.level}`);
-  return picks;
 }
 function topicLine(L){
   const t = TOPICS.find(x => x.id === state.topic);
@@ -1272,9 +1326,11 @@ function topicLine(L){
 }
 const unitsOf = L => L.units.map(u => u[0]).join(`, `);
 
+const SESSION = `HOW THE SESSION GOES (about 15 minutes; I may stop earlier or keep going)`;
+
 function freePrompt(){
   const L = LEVELS[state.level - 1];
-  const old = olderQuiz(3);
+  const carry = carryItems(6), quiz = carry.concat(spacedItems(2, carry)), fixed = carrySentences(2);
   const lines = [
     `You are my English speaking partner. We're going to have a voice conversation.`,
     ``, ABOUT, ``,
@@ -1282,20 +1338,27 @@ function freePrompt(){
     `- Level ${L.id} of 11: ${L.en}. Goal: ${L.canEn}.`,
     `- Grammar to practise: ${L.focus}. (Murphy, English Grammar in Use 5th edition, Units ${unitsOf(L)})`,
     `- Topic: ${topicLine(L)}`,
-    `- What to expect from me: ${L.len}`
+    `- What to expect from me: ${L.len}`,
+    ``,
+    SESSION
   ];
-  if (old.length) lines.push(``, `QUICK REVIEW FIRST (about 3 minutes)`, `Before we start chatting, check a few expressions from earlier sessions. ${QUIZ_HOW}`, ...old.map(quizLine), `If any of them fits naturally later, give me a chance to use it.`);
-  lines.push(``, ...talkRules(L, false), ``, ...tail(), ``,
-    old.length ? `Start now: greet me in one short sentence, then begin the quick review.` : `Start now: greet me in one short sentence and ask an easy first question about the topic.`);
+  if (quiz.length) lines.push(`First, a quick quiz (about 3 minutes) on expressions from earlier sessions. ${QUIZ_HOW}`, ...quiz.map(quizLine));
+  if (fixed.length) lines.push(fixedLine(fixed));
+  lines.push(
+    quiz.length ? `Then chat about the topic. If any of the quiz expressions fits naturally, give me a chance to use it.` : `Chat about the topic. Keep it going with small follow-up questions.`,
+    ``, ...talkRules(L, false), ``, ...tail(), ``,
+    quiz.length ? `Start now: greet me in one short English sentence, then begin the quiz.` : `Start now: greet me in one short English sentence and ask an easy first question about the topic.`
+  );
   return lines.join(`\n`);
 }
 
 function storyNew(){
   const n = state.ep, E = EPISODES[n - 1], L = LEVELS[E.lv - 1], prev = EPISODES[n - 2];
-  const old = olderQuiz(3);
+  const carry = carryItems(6), quiz = carry.concat(spacedItems(2, carry)), fixed = carrySentences(2);
+  const p1 = quiz.length ? 4 : 2, p3 = quiz.length ? 3 : 5;
   const part1 = prev
-    ? `Part 1, recap (about 5 minutes): Ask me two or three easy questions about what happened last time, so I can retell it in my own words.`
-    : `Part 1, warm-up (about 5 minutes): Ask me two or three easy questions about Leo (who he is, where he's from, what he does), so I can introduce him in my own words.`;
+    ? `Part 1, recap (about ${p1} minutes): Ask me one or two easy questions about what happened last time, so I can retell it in my own words.`
+    : `Part 1, warm-up (about ${p1} minutes): Ask me one or two easy questions about Leo (who he is, where he's from, what he does), so I can introduce him in my own words.`;
   const lines = [
     `You are my English speaking partner. Today we'll play one episode of an ongoing story, as a voice conversation.`,
     ``, ABOUT, ``, ...STORY,
@@ -1309,23 +1372,24 @@ function storyNew(){
     `- Level ${L.id} of 11 (${L.en}). Grammar to practise: ${L.focus}. (Murphy, English Grammar in Use 5th edition, Units ${unitsOf(L)})`,
     `- What to expect from me: ${L.len}`,
     ``,
-    `HOW THE SESSION GOES (about 30 minutes; I can stop at any time)`,
+    SESSION,
     part1
   ];
-  if (old.length) lines.push(`At the end of Part 1, also check a few expressions from earlier episodes. ${QUIZ_HOW}`, ...old.map(quizLine));
+  if (quiz.length) lines.push(`Then quiz me on expressions from earlier sessions. ${QUIZ_HOW}`, ...quiz.map(quizLine));
+  if (fixed.length) lines.push(fixedLine(fixed));
   lines.push(
-    `Part 2, the scene (about 15 minutes): Say "Scene starts", set the scene in one or two sentences, then stay in character. Steer the scene so that Leo's goals come up naturally. Add small events and questions to keep it going, and don't let it end too quickly.`,
-    `Part 3, real life (about 10 minutes): Say "Scene ends", step out of the story and ask me about my own life: ${E.real}.`,
+    `Part 2, the scene (about 8 minutes): Say "Scene starts", set the scene in one or two sentences, then stay in character. Steer the scene so that Leo's goals come up naturally. Add small events and questions to keep it going, and don't let it end too quickly.`,
+    `Part 3, real life (about ${p3} minutes): Say "Scene ends", step out of the story and ask me about my own life: ${E.real}.`,
     `If I say "next part", move on to the next part straight away.`,
     ``, ...talkRules(L, true), ``, ...tail(), ``,
-    `Start now with Part 1. Greet me in one short sentence first.`
+    `Start now with Part 1. Greet me in one short English sentence first.`
   );
   return lines.join(`\n`);
 }
 
 function storyReplay(){
   const n = state.ep, E = EPISODES[n - 1], L = LEVELS[E.lv - 1];
-  const saves = savesForEp(n);
+  const saves = replaySaves();
   const es = itemsOf(saves, `E`).slice(0, 8);
   const gs = itemsOf(saves, `G`).slice(0, 2);
   const ss = itemsOf(saves, `S`).slice(0, 2);
@@ -1344,18 +1408,18 @@ function storyReplay(){
     `- Level ${L.id} of 11 (${L.en}). Grammar to practise: ${L.focus}. (Murphy, English Grammar in Use 5th edition, Units ${unitsOf(L)})`,
     `- What to expect from me: ${L.len}`,
     ``,
-    `HOW THE SESSION GOES (about 30 minutes; I can stop at any time)`
+    SESSION
   ];
-  if (es.length) lines.push(`Part 1, quick quiz (about 5 minutes): These are the expressions I saved last time. ${QUIZ_HOW}`, ...es.map(quizLine));
-  else lines.push(`Part 1, recall (about 5 minutes): Ask me what I remember from the last time I played this episode, and which English expressions I learned. Help me say them again.`);
+  if (es.length) lines.push(`Part 1, quick quiz (about 4 minutes): These are expressions I saved recently. ${QUIZ_HOW}`, ...es.map(quizLine));
+  else lines.push(`Part 1, recall (about 3 minutes): Ask me what I remember from the last time I played this episode, and which English expressions I learned. Help me say them again.`);
   if (gs.length) lines.push(`Grammar from last time: ${gs.map(g => g.a + (g.b ? ` (${g.b})` : ``)).join(`; `)}.`);
-  if (ss.length) lines.push(`Sentences I fixed last time: ${ss.map(s => `"${s.a}" → "${s.b}"`).join(`; `)}.`);
+  if (ss.length) lines.push(fixedLine(ss));
   lines.push(
-    `Part 2, the scene (about 15 minutes): Say "Scene starts", set the scene in one or two sentences, then stay in character. Include the change above. Create chances for me to use the expressions from Part 1 again, without telling me which ones.`,
-    `Part 3, real life (about 10 minutes): Say "Scene ends", step out of the story and ask me about my own life, from a different angle than last time: ${E.real}.`,
+    `Part 2, the scene (about 8 minutes): Say "Scene starts", set the scene in one or two sentences, then stay in character. Include the change above. Create chances for me to use the expressions from Part 1 again, without telling me which ones.`,
+    `Part 3, real life (about 3 minutes): Say "Scene ends", step out of the story and ask me about my own life, from a different angle than last time: ${E.real}.`,
     `If I say "next part", move on to the next part straight away.`,
     ``, ...talkRules(L, true), ``, ...tail(), ``,
-    `Start now with Part 1. Greet me in one short sentence first.`
+    `Start now with Part 1. Greet me in one short English sentence first.`
   );
   return lines.join(`\n`);
 }
@@ -1363,8 +1427,9 @@ function storyReplay(){
 function storyReview(){
   const lv = state.level, L = LEVELS[lv - 1], R = REVIEWS[lv];
   const eps = EPISODES.map((e, i) => ({ e, n: i + 1 })).filter(x => x.e.lv === lv);
-  const es = pick(itemsOf(savesForLevel(lv), `E`), 6, `review|${lv}`);
-  const old = olderQuiz(2);
+  const es = uniqItems(carryItems(4).concat(pick(itemsOf(savesForLevel(lv), `E`), 6, `review|${lv}`))).slice(0, 6);
+  const old = spacedItems(2, es);
+  const fixed = carrySentences(2);
   const lines = [
     `You are my English speaking partner. Today is a review session for one part of an ongoing story, as a voice conversation.`,
     ``, ABOUT, ``, ...STORY,
@@ -1379,17 +1444,18 @@ function storyReview(){
     `- Level ${L.id} of 11 (${L.en}). Grammar to practise: ${L.focus}. (Murphy, English Grammar in Use 5th edition, Units ${unitsOf(L)})`,
     `- What to expect from me: ${L.len}`,
     ``,
-    `HOW THE SESSION GOES (about 30 minutes; I can stop at any time)`
+    SESSION
   ];
-  if (es.length) lines.push(`Part 1, quiz (about 5 minutes): Expressions I saved in this level. ${QUIZ_HOW}`, ...es.map(quizLine));
-  else lines.push(`Part 1, recall (about 5 minutes): Ask me which English expressions I remember from these episodes, and help me say them again.`);
+  if (es.length) lines.push(`Part 1, quiz (about 4 minutes): Expressions I saved recently and in this level. ${QUIZ_HOW}`, ...es.map(quizLine));
+  else lines.push(`Part 1, recall (about 3 minutes): Ask me which English expressions I remember from these episodes, and help me say them again.`);
   if (old.length) lines.push(`Then check two older ones too:`, ...old.map(quizLine));
+  if (fixed.length) lines.push(fixedLine(fixed));
   lines.push(
-    `Part 2, the scene (about 15 minutes): Say "Scene starts", set the scene in one or two sentences, then stay in character. Ask about the things that happened in these episodes, so I have to use this level's grammar to talk about them.`,
-    `Part 3, retell (about 10 minutes): Say "Scene ends". Ask me to retell the episodes of this part one at a time, in my own words. After each one, ask one or two short questions.`,
+    `Part 2, the scene (about 7 minutes): Say "Scene starts", set the scene in one or two sentences, then stay in character. Ask about the things that happened in these episodes, so I have to use this level's grammar to talk about them.`,
+    `Part 3, retell (about 4 minutes): Say "Scene ends". Ask me to retell the episodes of this part one at a time, in my own words. After each one, ask one short question.`,
     `If I say "next part", move on to the next part straight away.`,
     ``, ...talkRules(L, true), ``, ...tail(), ``,
-    `Start now with Part 1. Greet me in one short sentence first.`
+    `Start now with Part 1. Greet me in one short English sentence first.`
   );
   return lines.join(`\n`);
 }
@@ -1482,7 +1548,7 @@ $(`save-btn`).addEventListener(`click`, () => {
   $(`paste`).value = ``; state.paste = ``; save();
   st.dataset.sticky = `1`;
   const c = items.filter(i => i.t === `E`).length;
-  st.textContent = ok ? `已存 ${c} 个表达到这台设备。下次重演或复习时会自动带上。` : `已加入 ${c} 个表达，但这台设备的存储写不进去（可能是无痕模式或空间不足），刷新后会丢失。`;
+  st.textContent = ok ? `已存 ${c} 个表达到这台设备。下次练习开头，AI 会先用中文考你。` : `已加入 ${c} 个表达，但这台设备的存储写不进去（可能是无痕模式或空间不足），刷新后会丢失。`;
   setTimeout(() => { delete st.dataset.sticky; renderSaveBox(); }, 4000);
   renderSaveBox();
 });
