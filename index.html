@@ -265,6 +265,10 @@ details.save #paste{background:var(--card)}
 .card-g{font-size:13px;display:flex;gap:6px;align-items:baseline;flex-wrap:wrap;padding-top:6px}
 .card-s{font-size:13px;color:var(--muted);padding-top:2px}
 .card-s b{color:var(--ink);font-weight:500}
+.seen{position:relative;margin-left:4px;font-size:11px;font-weight:500;color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap;-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
+.seen::after{content:attr(data-tip);position:absolute;right:-4px;bottom:calc(100% + 6px);padding:4px 8px;border-radius:6px;background:var(--ink);color:var(--bg);font-size:12px;white-space:nowrap;pointer-events:none;opacity:0;transition:opacity .12s;z-index:5}
+@media (hover:hover){.seen:hover::after{opacity:1}}
+.seen.tip-on::after{opacity:1}
 .empty{background:var(--card);border-radius:var(--r);padding:20px;color:var(--muted);font-size:14px}
 .cloud{background:var(--card);border-radius:var(--r);padding:14px 16px;display:flex;flex-direction:column;gap:12px;box-shadow:var(--shadow-1)}
 .cloud-head{display:flex;align-items:center;gap:10px;flex-wrap:wrap;min-height:30px}
@@ -1490,20 +1494,51 @@ function renderSaveBox(){
 
 /* notebook */
 function fmtDate(iso){ const d = new Date(iso); return isNaN(d) ? `` : `${d.getMonth() + 1}月${d.getDate()}日`; }
+/* Display-only dedupe for the notebook (storage is untouched).
+   An E card (by English) or S card (by original sentence) is shown once, in the newest save that has it;
+   E cards also carry how many saves contain them (counted over countIn, default: the same saves). G cards are always shown.
+   Returns Map saveId -> { es:[{item,count}], ss:[item], gs:[item] }; saves left empty are absent. */
+const cardKey = a => String(a || ``).trim().toLowerCase().replace(/[\s.!?,;:。！？，；：…]+$/u, ``);
+function practiceCounts(saves){
+  const n = new Map();
+  saves.forEach(s => new Set((s.items || []).filter(i => i.t === `E`).map(i => cardKey(i.a))).forEach(k => n.set(k, (n.get(k) || 0) + 1)));
+  return n;
+}
+function notebookView(saves, countIn = saves){
+  const counts = practiceCounts(countIn);
+  const seen = { E: new Set(), S: new Set() };
+  const view = new Map();
+  saves.slice().sort((x, y) => byTime(y, x)).forEach(s => {
+    const v = { es: [], ss: [], gs: [] };
+    (s.items || []).forEach(i => {
+      if (i.t === `G`) { v.gs.push(i); return; }
+      const k = cardKey(i.a);
+      if (seen[i.t] && !seen[i.t].has(k)) {
+        seen[i.t].add(k);
+        if (i.t === `E`) v.es.push({ item: i, count: counts.get(k) || 1 }); else v.ss.push(i);
+      }
+    });
+    if (v.es.length || v.ss.length || v.gs.length) view.set(s.id, v);
+  });
+  return view;
+}
+let nbView = new Map();
 function saveHtml(s){
-  const es = (s.items || []).filter(i => i.t === `E`);
-  const gs = (s.items || []).filter(i => i.t === `G`);
-  const ss = (s.items || []).filter(i => i.t === `S`);
+  const v = nbView.get(s.id);
+  if (!v) return ``;
+  const { es, gs, ss } = v;
+  const seenTag = n => n > 1 ? ` <span class="seen" data-tip="在 ${n} 次练习里出现过" aria-label="在 ${n} 次练习里出现过">×${n}</span>` : ``;
   return `<div class="nb-save">
     <div class="nb-meta"><span>${esc(KIND_LABEL[s.kind] || ``)} · ${esc(fmtDate(s.at))}</span><button type="button" class="del" data-del="${esc(s.id)}">删除</button></div>
-    ${es.length ? `<div class="cards">${es.map(i => `<button type="button" class="card-e"><span class="en">${esc(i.a)}</span><span class="zh">${esc(i.b)}</span></button>`).join(``)}</div>` : ``}
+    ${es.length ? `<div class="cards">${es.map(({ item: i, count }) => `<button type="button" class="card-e"><span class="en">${esc(i.a)}</span><span class="zh">${esc(i.b)}${seenTag(count)}</span></button>`).join(``)}</div>` : ``}
     ${gs.map(i => `<div class="card-g"><span class="unit"><code>${esc(i.b || `语法`)}</code>${esc(i.a)}</span></div>`).join(``)}
     ${ss.map(i => `<div class="card-s">${esc(i.a)} → <b>${esc(i.b)}</b></div>`).join(``)}
   </div>`;
 }
 function groupHtml(title, tag, saves){
+  saves = saves.filter(s => nbView.has(s.id));
   if (!saves.length) return ``;
-  const sorted = saves.slice().sort((x, y) => String(y.at).localeCompare(String(x.at)));
+  const sorted = saves.slice().sort((x, y) => byTime(y, x));
   return `<div class="nb-group"><h3><span>${esc(tag)}</span>${esc(title)}</h3>${sorted.map(saveHtml).join(``)}</div>`;
 }
 function levelGroups(lv){
@@ -1515,12 +1550,13 @@ function levelGroups(lv){
 }
 function renderNotebook(){
   const all = allSaves();
-  const total = itemsOf(all, `E`).length;
+  const total = practiceCounts(all).size;
   const where = sync.token ? `复习卡存在这台设备上，并通过云同步和你的其他设备保持一致。` : `复习卡存在这台设备上。`;
   $(`nb-note`).textContent = `${where}全部共 ${total} 个表达。打开「遮住英文自测」后，看中文想英文，点一下显示答案。`;
   $(`nb-scope`).textContent = state.nbAll ? `只看 Lv${state.level}` : `看全部级别`;
   document.getElementById(`nb`).classList.toggle(`quiz`, !!state.quiz);
   $(`nb-quiz`).checked = !!state.quiz;
+  nbView = notebookView(state.nbAll ? all : all.filter(s => s.lv === state.level), all);
   let html = ``;
   if (state.nbAll) { for (let lv = 1; lv <= 11; lv++) html += levelGroups(lv); }
   else html = levelGroups(state.level);
@@ -1796,6 +1832,20 @@ $(`save-btn`).addEventListener(`click`, () => {
   renderSaveBox();
 });
 
+/* long press on a ×N marker shows its tooltip (touch screens have no hover) */
+let tipTimer = null, tipHide = null, tipShown = false;
+$(`nb`).addEventListener(`touchstart`, e => {
+  const m = e.target.closest(`.seen`); if (!m) return;
+  clearTimeout(tipTimer); clearTimeout(tipHide); tipShown = false;
+  document.querySelectorAll(`#nb .seen.tip-on`).forEach(x => x.classList.remove(`tip-on`));
+  tipTimer = setTimeout(() => {
+    tipShown = true; m.classList.add(`tip-on`);
+    tipHide = setTimeout(() => m.classList.remove(`tip-on`), 1800);
+  }, 450);
+}, { passive: true });
+[`touchend`, `touchmove`, `touchcancel`].forEach(t => $(`nb`).addEventListener(t, () => clearTimeout(tipTimer), { passive: true }));
+/* the tap that ends a long press must not also flip the card in quiz mode */
+$(`nb`).addEventListener(`click`, e => { if (tipShown && e.target.closest(`.seen`)) { tipShown = false; e.stopImmediatePropagation(); } }, true);
 $(`nb-quiz`).addEventListener(`change`, e => { state.quiz = e.target.checked; save(); renderNotebook(); });
 $(`nb-scope`).addEventListener(`click`, () => { state.nbAll = !state.nbAll; save(); renderNotebook(); });
 $(`nb`).addEventListener(`click`, async e => {
