@@ -401,15 +401,15 @@ footer{font-size:12px;color:var(--muted)}
       <ol class="flow">
         <li><span>到 ChatGPT <b>新对话</b>里粘贴、发送</span></li>
         <li><span>它回第一句后，点<b>语音</b>开始说，15 分钟左右</span></li>
-        <li><span>退出语音，打字 <b>wrap up</b>，复制回复，存到下面</span></li>
+        <li><span>说 <b>stop</b> 结束，把分享链接交给 <b>Claude Code</b>，生成的复习卡存到下面</span></li>
       </ol>
       <p class="status" id="copy-status" aria-live="polite"></p>
       <div class="go-extra">
         <details class="more save" id="save">
           <summary>练完了？存复习卡</summary>
           <div class="more-body">
-            <p class="hint">长按 wrap up 那条回复点「复制」，整段贴到下面就行，页面会自己挑出「下次考我」的句子和改过的错句。</p>
-            <textarea id="paste" spellcheck="false" aria-label="贴入复习卡" placeholder="我平时步行上班。 → I walk to the office.&#10;I'm walk to office → I walk to the office. → 习惯用一般现在时（Murphy Unit 2）"></textarea>
+            <p class="hint">练完后把 ChatGPT 对话的分享链接交给 Claude Code，它会生成一个复习卡代码块。把代码块贴到下面，点保存。</p>
+            <textarea id="paste" spellcheck="false" aria-label="贴入复习卡" placeholder="E: I prefer building things. | 我更喜欢做开发&#10;G: prefer 后面接 -ing | Unit 59&#10;S: I prefer like building things. | I prefer building things."></textarea>
             <div class="save-row">
               <button class="btn" id="save-btn" type="button" disabled>存到第 1 集</button>
               <span class="status" id="save-status" aria-live="polite"></span>
@@ -515,8 +515,8 @@ footer{font-size:12px;color:var(--muted)}
       <li>选好一集和这次的类型（新演、重演或本级复习），点「复制提示词」。</li>
       <li>打开 ChatGPT，新建一个对话，粘贴后发送。它回了第一句之后，在同一个对话里点语音按钮，开始说。</li>
       <li>一次练习 15 分钟左右，分三段：先小测上次的句子，再演场景，最后聊你自己或者复述。AI 会自己过渡，你不用管；想提前进入下一段，说 “next part”。</li>
-      <li>想结束时退出语音，在对话框里打字 “wrap up”。它会给一段一屏左右的中文分析：做得好的地方、最该改的 5 个错误（标了 Murphy 单元）、3 个实用表达，最后是「下次考我」。</li>
-      <li>长按这条回复复制，贴到本页「存复习卡」，点保存。下次不管练哪一集，提示词都会带上这些句子，AI 开头先用中文考你。</li>
+      <li>想结束时说 “stop” 或 “结束”，它会简单道别。</li>
+      <li>在 ChatGPT 里分享这次对话，把链接交给 Claude Code 生成复习卡，贴到「存复习卡」保存。下次不管练哪一集，开头都会先考这些句子。</li>
     </ol>
     <p class="aside">听不懂就说 “Pardon?” 或 “Could you say that again more slowly?”，它会放慢、换简单的说法；两次还听不懂，它会用几个字的中文告诉你意思。AI 说得太快或太长，直接说 “slower” 或 “shorter”。一集演得不满意，就再演一遍，每次走向都会不一样。想要更细的反馈，可以把对话文字复制给 Claude 逐句看。</p>
   </section>
@@ -996,30 +996,6 @@ const TOPICS = [
   { id:`custom`,label:`自己写` }
 ];
 
-const UNIT_MAP = [
-  `1–4 present simple / present continuous`,
-  `5–6 past simple / past continuous`,
-  `7–14 present perfect, for / since`,
-  `15–16 past perfect`,
-  `17 have got · 18 used to`,
-  `19–25 future forms`,
-  `26–37 modal verbs`,
-  `38–41 if / wish`,
-  `42–46 passive`,
-  `47–48 reported speech`,
-  `49–52 questions, auxiliary verbs, question tags`,
-  `53–68 -ing and to...`,
-  `69–71 countable / uncountable · 72–78 a / an / the · 79–81 plurals, noun + noun, 's`,
-  `82–91 pronouns and determiners (some / any 85, much / many 87)`,
-  `92–97 relative clauses`,
-  `98–108 adjectives, adverbs, comparison`,
-  `109–112 word order, still / yet / already, even`,
-  `113–120 although, in case, unless, as, like, while, by the time`,
-  `121–128 prepositions of time and place`,
-  `129–136 noun / adjective / verb + preposition`,
-  `137–145 phrasal verbs`
-];
-
 const HELP_PHRASES = [`Pardon?`, `Could you say that again more slowly?`, `What does "…" mean?`, `How do I say "…" in English?`];
 
 const KIND_LABEL = { new:`新演`, replay:`重演`, review:`本级复习`, free:`自由聊` };
@@ -1289,10 +1265,11 @@ function copyFrom(el, onDone, onFail){
 }
 
 /* ---------- card helpers ---------- */
-/* Reads the wrap-up analysis pasted from ChatGPT:
+/* Reads review cards pasted in:
+   "E: English | 中文", "G: 语法点 | Unit 59", "S: what I said | better"  (the code block Claude Code generates)
+   Arrow lines from older ChatGPT wrap-ups still work:
    "中文 → English"                       -> E (expression to quiz next time)
-   "what I said → better → 解释（Unit 2）"  -> S (fixed sentence) + G (grammar point)
-   The older "E: … | …" card format still works. */
+   "what I said → better → 解释（Unit 2）"  -> S (fixed sentence) + G (grammar point) */
 const CJK = /[㐀-鿿]/;
 const LATIN = /[A-Za-z]/;
 function cleanPart(x){
@@ -1503,7 +1480,7 @@ function renderSaveBox(){
   const st = $(`save-status`);
   if (!st.dataset.sticky) {
     if (!$(`paste`).value.trim()) st.textContent = ``;
-    else if (!items.length) st.textContent = `还没认出句子。贴入的内容里要有「中文 → 英文」这样带箭头的行。`;
+    else if (!items.length) st.textContent = `还没认出句子。每行要以 E:、G: 或 S: 开头，比如 E: I prefer building things. | 我更喜欢做开发`;
     else {
       const c = { E:0, G:0, S:0 }; items.forEach(i => c[i.t]++);
       st.textContent = `认出 ${c.E} 个要考的表达、${c.S} 个改过的句子、${c.G} 个语法点。`;
@@ -1547,7 +1524,7 @@ function renderNotebook(){
   let html = ``;
   if (state.nbAll) { for (let lv = 1; lv <= 11; lv++) html += levelGroups(lv); }
   else html = levelGroups(state.level);
-  $(`nb`).innerHTML = html || `<div class="empty">${state.nbAll ? `还没有复习卡。` : `Lv${state.level} 还没有复习卡。`}练完后在「练习」页的「存复习卡」里贴入 wrap up 的分析，卡片会出现在这里。</div>`;
+  $(`nb`).innerHTML = html || `<div class="empty">${state.nbAll ? `还没有复习卡。` : `Lv${state.level} 还没有复习卡。`}练完后让 Claude Code 根据对话生成复习卡，贴到「练习」页的「存复习卡」里，卡片会出现在这里。</div>`;
   if (!$(`exp-panel`).hidden) $(`exp-out`).value = exportText();
 }
 
@@ -1562,12 +1539,12 @@ const QUIZ_HOW = `Quiz me one at a time: say the Chinese, and I try to say the E
 
 function talkRules(L, story){
   const zhRule = state.zh
-    ? `If I say a word or a sentence in Chinese, give me a short, natural way to say it in English, ask me to repeat it once, then carry on. Always reply in English, even when I use Chinese (the wrap-up is the only exception).`
+    ? `If I say a word or a sentence in Chinese, give me a short, natural way to say it in English, ask me to repeat it once, then carry on. Always reply in English, even when I use Chinese.`
     : `Keep the whole conversation in English. If I get stuck, offer me a simpler English word or a sentence starter.`;
   const r = [
     `HOW TO TALK WITH ME`,
     story ? `1. Keep your turns short, also when you're in character: one to three sentences, then ask me ONE question.` : `1. Keep your turns short: one to three sentences, then ask me ONE question.`,
-    `2. Speak English from your very first sentence. Speak a little slowly and use common, everyday words. Stay at my level.`,
+    `2. Speak English from your very first sentence. Speak a little slowly and use common, everyday words. Stay at my level. Keep every question under about 8 words. Avoid idioms and slang (for example "solid", "jump in", "dry mix"); use words a beginner knows. If something new happens in the scene, say it in one very short sentence.`,
     `3. If I say "Pardon?", "Sorry?", "Could you say that again?" or "What does ... mean?", say it again more slowly, in simpler words. If I still don't understand after the second try, tell me the meaning in a few Chinese words, then carry on in English.`,
     story ? `4. Question style for my level: ${L.ask}` : `4. ${L.ask}`,
     `5. I may pause for a long time while I think. Wait for me. If I stay silent, don't change the topic; give me a sentence starter instead, for example: "You could start with: ${L.frames[0]}"`,
@@ -1581,19 +1558,7 @@ function talkRules(L, story){
   return r;
 }
 function tail(){
-  return [
-    `WRAP-UP`,
-    `If I say "wrap up" (or "结束") while we're talking in voice, just say goodbye in one short sentence. I'll leave voice mode and type "wrap up" in the chat.`,
-    `When I type "wrap up" (or "分析一下"), analyse today's session in Chinese, in four short parts, about one screen in total:`,
-    `1. 做得好的地方: one or two sentences.`,
-    `2. 最该改的 5 个错误: one per line, written as "what I said → a more natural version → a one-sentence explanation (Murphy Unit X)". Only pick mistakes that change the meaning or keep coming back. Ignore pauses, repeated words and voice-transcription errors; if you're not sure I really said it, leave it out. If you're not sure of the unit, leave the unit out.`,
-    `3. 今天最实用的 3 个表达, each with its Chinese meaning.`,
-    `4. 下次考我: merge parts 2 and 3 into 6 to 8 lines, one per line, written as "Chinese → English".`,
-    `Write parts 2 and 4 as plain lines, not tables. No scores, no homework.`,
-    ``,
-    `MURPHY UNIT MAP (English Grammar in Use, 5th edition)`,
-    ...UNIT_MAP
-  ];
+  return [`When I say "stop", "wrap up" or "结束", say goodbye in one short sentence and stop. Don't summarise or analyse the session.`];
 }
 function topicLine(L){
   const t = TOPICS.find(x => x.id === state.topic);

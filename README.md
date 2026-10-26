@@ -46,7 +46,6 @@
 | 每级复习的场景 | `const REVIEWS` |
 | 重演时的变化 | `const TWISTS` |
 | 自由聊的话题 | `const TOPICS` |
-| 提示词末尾的 Murphy 单元表 | `const UNIT_MAP` |
 | 提示词的拼法 | `buildPrompt` 及上面的 `storyNew`、`storyReplay`、`storyReview`、`freePrompt`、`talkRules`、`tail` |
 | 页面上的文字和样式 | `<body>` 里的 HTML、`<head>` 里的 `<style>` |
 
