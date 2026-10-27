@@ -256,7 +256,7 @@ details.save #paste{background:var(--card)}
 .kind[data-k="replay"]{background:var(--replay-bg);color:var(--replay-ink)}
 button.kind{cursor:pointer}
 button.kind:hover{filter:brightness(.96)}
-.kind svg{width:11px;height:11px;fill:none;stroke:currentColor;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;opacity:.6}
+.kind[data-armed="1"]{background:var(--ink);color:var(--bg)}
 .nb-meta{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:12px;color:var(--muted)}
 .del{background:none;border:0;min-height:40px;padding:0 4px 0 12px;cursor:pointer;font-size:13px;color:var(--muted)}
 .del:hover{color:var(--ink)}
@@ -1648,7 +1648,7 @@ function saveHtml(s){
   const { es, gs, ss } = v;
   const seenTag = n => n > 1 ? ` <span class="seen" data-tip="在 ${n} 次练习里出现过" aria-label="在 ${n} 次练习里出现过">×${n}</span>` : ``;
   return `<div class="nb-save">
-    <div class="nb-meta"><span class="nb-when">${s.kind === `new` || s.kind === `replay` ? `<button type="button" class="kind" data-k="${s.kind}" data-kind-toggle="${esc(s.id)}" title="点一下改成${s.kind === `new` ? `重演` : `新演`}" aria-label="${esc(KIND_LABEL[s.kind])}，点一下改成${s.kind === `new` ? `重演` : `新演`}">${esc(KIND_LABEL[s.kind])}<svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2 4.5h7.5L7.5 2.5M10 7.5H2.5l2 2"/></svg></button>` : `<span class="kind" data-k="${esc(s.kind)}">${esc(KIND_LABEL[s.kind] || ``)}</span>`}${esc(fmtDate(s.at))}</span><button type="button" class="del" data-del="${esc(s.id)}">删除</button></div>
+    <div class="nb-meta"><span class="nb-when">${s.kind === `new` || s.kind === `replay` ? `<button type="button" class="kind" data-k="${s.kind}" data-kind-toggle="${esc(s.id)}" data-label="${esc(KIND_LABEL[s.kind])}" aria-label="${esc(KIND_LABEL[s.kind])}（记错了可以点两下改成${s.kind === `new` ? `重演` : `新演`}）">${esc(KIND_LABEL[s.kind])}</button>` : `<span class="kind" data-k="${esc(s.kind)}">${esc(KIND_LABEL[s.kind] || ``)}</span>`}${esc(fmtDate(s.at))}</span><button type="button" class="del" data-del="${esc(s.id)}">删除</button></div>
     ${es.length ? `<div class="cards">${es.map(({ item: i, count }) => `<div class="card-row"><button type="button" class="card-e"><span class="en">${esc(i.a)}</span><span class="zh">${esc(i.b)}${seenTag(count)}</span></button><button type="button" class="mk-btn" data-master="${esc(s.id)}" data-i="${s.items.indexOf(i)}" aria-label="标为已掌握：${esc(i.a)}">标为已掌握</button></div>`).join(``)}</div>` : ``}
     ${gs.map(i => `<div class="card-g"><span class="unit"><code>${esc(i.b || `语法`)}</code>${esc(i.a)}</span></div>`).join(``)}
     ${ss.map(i => `<div class="card-s">${esc(i.a)} → <b>${esc(i.b)}</b></div>`).join(``)}
@@ -2011,7 +2011,15 @@ $(`nb`).addEventListener(`click`, async e => {
     return;
   }
   const kt = e.target.closest(`[data-kind-toggle]`);
-  if (kt) { toggleKind(kt.dataset.kindToggle); return; }
+  if (kt) {
+    // a label, not a control: the first tap only asks, the second (within 3 s) switches 新演 ↔ 重演
+    if (kt.dataset.armed !== `1`) {
+      kt.dataset.armed = `1`; kt.textContent = `改成${kt.dataset.k === `new` ? `重演` : `新演`}？`;
+      setTimeout(() => { if (kt.isConnected) { kt.dataset.armed = ``; kt.textContent = kt.dataset.label; } }, 3000);
+      return;
+    }
+    toggleKind(kt.dataset.kindToggle); return;
+  }
   const mb = e.target.closest(`[data-master]`);
   if (mb) {
     const sv = store.local.find(x => x.id === mb.dataset.master), it = sv && sv.items[Number(mb.dataset.i)];
