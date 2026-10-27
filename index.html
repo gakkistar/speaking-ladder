@@ -18,7 +18,7 @@
 :root{
   --bg:#F2F2F7; --card:#FFFFFF; --fill:#F2F2F7; --ink:#1C1C1E; --muted:#6C6C70; --line:#E5E5EA; --line-2:#D1D1D6;
   --accent:#4C7BE0; --accent-hover:#5C88E6; --accent-press:#3A68CC; --accent-strong:#3463CC; --accent-ink:#FFFFFF;
-  --tint:#EDF2FD; --tint-2:#D3E0F8; --danger:#C62828;
+  --tint:#EDF2FD; --tint-2:#D3E0F8; --danger:#C62828; --replay-bg:#FDF0E1; --replay-ink:#A8560B;
   --r:14px; --bar:56px;
   --shadow-1:0 1px 2px rgba(0,0,0,.05); --shadow-2:0 8px 24px rgba(0,0,0,.12);
   --f:-apple-system,BlinkMacSystemFont,"SF Pro Text",system-ui,"PingFang SC","Hiragino Sans GB","Microsoft YaHei","Noto Sans SC",sans-serif;
@@ -28,14 +28,14 @@
   :root:not([data-theme="light"]){
     --bg:#000000; --card:#1C1C1E; --fill:#2C2C2E; --ink:#F2F2F7; --muted:#98989F; --line:#2C2C2E; --line-2:#3A3A3C;
     --accent:#7393F2; --accent-hover:#89A4F5; --accent-press:#5F80E6; --accent-strong:#8DA7F5; --accent-ink:#0B1533;
-    --tint:#1A2340; --tint-2:#25335C; --danger:#FF8A80; --shadow-1:none; --shadow-2:0 8px 24px rgba(0,0,0,.6);
+    --tint:#1A2340; --tint-2:#25335C; --danger:#FF8A80; --replay-bg:#3A2A15; --replay-ink:#F5B36B; --shadow-1:none; --shadow-2:0 8px 24px rgba(0,0,0,.6);
     color-scheme:dark;
   }
 }
 :root[data-theme="dark"]{
   --bg:#000000; --card:#1C1C1E; --fill:#2C2C2E; --ink:#F2F2F7; --muted:#98989F; --line:#2C2C2E; --line-2:#3A3A3C;
   --accent:#7393F2; --accent-hover:#89A4F5; --accent-press:#5F80E6; --accent-strong:#8DA7F5; --accent-ink:#0B1533;
-  --tint:#1A2340; --tint-2:#25335C; --danger:#FF8A80; --shadow-1:none; --shadow-2:0 8px 24px rgba(0,0,0,.6);
+  --tint:#1A2340; --tint-2:#25335C; --danger:#FF8A80; --replay-bg:#3A2A15; --replay-ink:#F5B36B; --shadow-1:none; --shadow-2:0 8px 24px rgba(0,0,0,.6);
   color-scheme:dark;
 }
 
@@ -250,8 +250,13 @@ details.save #paste{background:var(--card)}
 .nb-group h3{font-size:17px;display:flex;align-items:baseline;gap:8px;padding-left:4px}
 .nb-group h3 span{font-size:13px;color:var(--accent-strong)}
 .nb-save{background:var(--card);border-radius:var(--r);padding:4px 16px 12px;display:flex;flex-direction:column;gap:4px;box-shadow:var(--shadow-1)}
-.kind-tg{background:none;border:0;padding:6px 6px;margin:-6px -6px;min-height:32px;font:inherit;color:inherit;cursor:pointer;text-decoration:underline dotted;text-underline-offset:3px}
-.kind-tg:hover{color:var(--accent-strong)}
+.nb-when{display:inline-flex;align-items:center;gap:8px}
+.kind{display:inline-flex;align-items:center;gap:4px;min-height:28px;padding:0 10px;border:0;border-radius:999px;font:inherit;font-size:13px;font-weight:600;line-height:1;background:var(--fill);color:var(--ink)}
+.kind[data-k="new"]{background:var(--tint);color:var(--accent-strong)}
+.kind[data-k="replay"]{background:var(--replay-bg);color:var(--replay-ink)}
+button.kind{cursor:pointer}
+button.kind:hover{filter:brightness(.96)}
+.kind svg{width:11px;height:11px;fill:none;stroke:currentColor;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;opacity:.6}
 .nb-meta{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:12px;color:var(--muted)}
 .del{background:none;border:0;min-height:40px;padding:0 4px 0 12px;cursor:pointer;font-size:13px;color:var(--muted)}
 .del:hover{color:var(--ink)}
@@ -299,9 +304,9 @@ details.save #paste{background:var(--card)}
 .sync{background:var(--card);border-radius:var(--r);padding:14px;display:flex;flex-direction:column;gap:10px;box-shadow:inset 0 0 0 1px var(--accent)}
 .sync textarea{height:140px;resize:vertical;font-family:var(--f-mono)}
 @media (max-width:1023px){
-  .nb-layout{display:flex;flex-direction:column;gap:16px}
+  .nb-layout{display:flex;flex-direction:column;align-items:stretch;gap:16px}
   .nb-main{display:contents}
-  .nb-head{order:1}.nb-side{order:2;position:static}#nb-note{order:3}.nb{order:4}
+  .nb-head{order:1}.nb-side{order:2;position:static}#nb-note{order:3}.nb{order:4}.mastered{order:5}
   .nb-head h2{font-size:26px}
 }
 
@@ -1619,7 +1624,7 @@ function saveHtml(s){
   const { es, gs, ss } = v;
   const seenTag = n => n > 1 ? ` <span class="seen" data-tip="在 ${n} 次练习里出现过" aria-label="在 ${n} 次练习里出现过">×${n}</span>` : ``;
   return `<div class="nb-save">
-    <div class="nb-meta"><span>${s.kind === `new` || s.kind === `replay` ? `<button type="button" class="kind-tg" data-kind-toggle="${esc(s.id)}" aria-label="${esc(KIND_LABEL[s.kind])}，点一下改成${s.kind === `new` ? `重演` : `新演`}">${esc(KIND_LABEL[s.kind])}</button>` : esc(KIND_LABEL[s.kind] || ``)} · ${esc(fmtDate(s.at))}</span><button type="button" class="del" data-del="${esc(s.id)}">删除</button></div>
+    <div class="nb-meta"><span class="nb-when">${s.kind === `new` || s.kind === `replay` ? `<button type="button" class="kind" data-k="${s.kind}" data-kind-toggle="${esc(s.id)}" title="点一下改成${s.kind === `new` ? `重演` : `新演`}" aria-label="${esc(KIND_LABEL[s.kind])}，点一下改成${s.kind === `new` ? `重演` : `新演`}">${esc(KIND_LABEL[s.kind])}<svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2 4.5h7.5L7.5 2.5M10 7.5H2.5l2 2"/></svg></button>` : `<span class="kind" data-k="${esc(s.kind)}">${esc(KIND_LABEL[s.kind] || ``)}</span>`}${esc(fmtDate(s.at))}</span><button type="button" class="del" data-del="${esc(s.id)}">删除</button></div>
     ${es.length ? `<div class="cards">${es.map(({ item: i, count }) => `<div class="card-row"><button type="button" class="card-e"><span class="en">${esc(i.a)}</span><span class="zh">${esc(i.b)}${seenTag(count)}</span></button><button type="button" class="mk-btn" data-master="${esc(s.id)}" data-i="${s.items.indexOf(i)}" aria-label="标为已掌握：${esc(i.a)}">标为已掌握</button></div>`).join(``)}</div>` : ``}
     ${gs.map(i => `<div class="card-g"><span class="unit"><code>${esc(i.b || `语法`)}</code>${esc(i.a)}</span></div>`).join(``)}
     ${ss.map(i => `<div class="card-s">${esc(i.a)} → <b>${esc(i.b)}</b></div>`).join(``)}
@@ -1628,7 +1633,7 @@ function saveHtml(s){
 function groupHtml(title, tag, saves){
   saves = saves.filter(s => nbView.has(s.id));
   if (!saves.length) return ``;
-  const sorted = saves.slice().sort((x, y) => byTime(y, x));
+  const sorted = saves.slice().sort((x, y) => byTime(x, y)); // oldest first: 新演 above its 重演
   return `<div class="nb-group"><h3><span>${esc(tag)}</span>${esc(title)}</h3>${sorted.map(saveHtml).join(``)}</div>`;
 }
 function levelGroups(lv){
