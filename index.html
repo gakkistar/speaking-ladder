@@ -250,6 +250,8 @@ details.save #paste{background:var(--card)}
 .nb-group h3{font-size:17px;display:flex;align-items:baseline;gap:8px;padding-left:4px}
 .nb-group h3 span{font-size:13px;color:var(--accent-strong)}
 .nb-save{background:var(--card);border-radius:var(--r);padding:4px 16px 12px;display:flex;flex-direction:column;gap:4px;box-shadow:var(--shadow-1)}
+.kind-tg{background:none;border:0;padding:6px 6px;margin:-6px -6px;min-height:32px;font:inherit;color:inherit;cursor:pointer;text-decoration:underline dotted;text-underline-offset:3px}
+.kind-tg:hover{color:var(--accent-strong)}
 .nb-meta{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:12px;color:var(--muted)}
 .del{background:none;border:0;min-height:40px;padding:0 4px 0 12px;cursor:pointer;font-size:13px;color:var(--muted)}
 .del:hover{color:var(--ink)}
@@ -423,7 +425,7 @@ footer{font-size:12px;color:var(--muted)}
         <details class="more save" id="save">
           <summary>练完了？存复习卡</summary>
           <div class="more-body">
-            <p class="hint">练完后把 ChatGPT 对话的分享链接交给 Claude Code，它会生成一个复习卡代码块。把代码块贴到下面，点保存。</p>
+            <p class="hint">练完后把 ChatGPT 对话的分享链接交给 Claude Code 生成复习卡，贴到这里保存。</p>
             <textarea id="paste" spellcheck="false" aria-label="贴入复习卡" placeholder="E: I prefer building things. | 我更喜欢做开发&#10;G: prefer 后面接 -ing | Unit 59&#10;S: I prefer like building things. | I prefer building things."></textarea>
             <div class="save-row">
               <button class="btn" id="save-btn" type="button" disabled>存到第 1 集</button>
@@ -1096,7 +1098,7 @@ function importText(text){
   cards.forEach(raw => {
     const s = cleanSave(raw);
     if (!s) { invalid++; return; }
-    if (have.has(s.id)) { skipped++; return; }
+    if (have.has(s.id) || findSameSave(s, s.items)) { skipped++; return; }
     have.add(s.id); fresh.push(s);
   });
   if (cards.length && !fresh.length && !skipped) throw new Error(`里面的 ${cards.length} 组复习卡都认不出来，没有导入。`);
@@ -1378,16 +1380,35 @@ function markMastered(item, lv){
   const at = r && r.e && r.e > now ? r.e : now;
   return addSave({ ep: 0, lv, kind: `mark`, at, items: [{ t: `M`, a: item.a, b: item.b || `` }] });
 }
-/* drops every M line for this expression; edited groups are re-saved under a new id so the change syncs */
+/* Sync merges saves by id and keeps whichever copy it sees first, so an edited save would be
+   overwritten by another device's old copy. Edits therefore re-save under a new id and tombstone the old one.
+   changes === null removes the save. Caller persists and re-renders. */
+function replaceSave(s, changes){
+  store.local = store.local.filter(x => x !== s); sync.deleted[s.id] = new Date().toISOString();
+  if (changes) store.local.push(Object.assign({}, s, changes, { id: newId() }));
+}
+const commitEdits = () => { persistLocal(); persistSync(); refreshData(); scheduleSync(); };
+/* drops every M line for this expression */
 function unmaster(key){
-  const now = new Date().toISOString();
   store.local.slice().forEach(s => {
     if (!(s.items || []).some(i => i.t === `M` && cardKey(i.a) === key)) return;
     const rest = s.items.filter(i => !(i.t === `M` && cardKey(i.a) === key));
-    store.local = store.local.filter(x => x !== s); sync.deleted[s.id] = now;
-    if (rest.length) store.local.push(Object.assign({}, s, { id: newId(), items: rest }));
+    replaceSave(s, rest.length ? { items: rest } : null);
   });
-  persistLocal(); persistSync(); refreshData(); scheduleSync();
+  commitEdits();
+}
+/* fix a save filed as 新演 / 重演 by mistake */
+function toggleKind(id){
+  const s = store.local.find(x => x.id === id);
+  if (!s || (s.kind !== `new` && s.kind !== `replay`)) return;
+  replaceSave(s, { kind: s.kind === `new` ? `replay` : `new` });
+  commitEdits();
+}
+/* same cards (any order, compared like the notebook dedupe) already saved for this episode / level slot */
+const cardsSig = items => [...new Set(items.map(i => i.t + `\u0001` + cardKey(i.a) + `\u0001` + cardKey(i.b)))].sort().join(`\u0002`);
+function findSameSave(t, items){
+  const sig = cardsSig(items);
+  return store.local.find(s => (t.ep > 0 ? s.ep === t.ep : s.ep === 0 && s.lv === t.lv && s.kind === t.kind) && cardsSig(s.items || []) === sig) || null;
 }
 
 function itemsOf(saves, type){
@@ -1595,7 +1616,7 @@ function saveHtml(s){
   const { es, gs, ss } = v;
   const seenTag = n => n > 1 ? ` <span class="seen" data-tip="在 ${n} 次练习里出现过" aria-label="在 ${n} 次练习里出现过">×${n}</span>` : ``;
   return `<div class="nb-save">
-    <div class="nb-meta"><span>${esc(KIND_LABEL[s.kind] || ``)} · ${esc(fmtDate(s.at))}</span><button type="button" class="del" data-del="${esc(s.id)}">删除</button></div>
+    <div class="nb-meta"><span>${s.kind === `new` || s.kind === `replay` ? `<button type="button" class="kind-tg" data-kind-toggle="${esc(s.id)}" aria-label="${esc(KIND_LABEL[s.kind])}，点一下改成${s.kind === `new` ? `重演` : `新演`}">${esc(KIND_LABEL[s.kind])}</button>` : esc(KIND_LABEL[s.kind] || ``)} · ${esc(fmtDate(s.at))}</span><button type="button" class="del" data-del="${esc(s.id)}">删除</button></div>
     ${es.length ? `<div class="cards">${es.map(({ item: i, count }) => `<div class="card-row"><button type="button" class="card-e"><span class="en">${esc(i.a)}</span><span class="zh">${esc(i.b)}${seenTag(count)}</span></button><button type="button" class="mk-btn" data-master="${esc(s.id)}" data-i="${s.items.indexOf(i)}" aria-label="标记为已掌握：${esc(i.a)}">已掌握</button></div>`).join(``)}</div>` : ``}
     ${gs.map(i => `<div class="card-g"><span class="unit"><code>${esc(i.b || `语法`)}</code>${esc(i.a)}</span></div>`).join(``)}
     ${ss.map(i => `<div class="card-s">${esc(i.a)} → <b>${esc(i.b)}</b></div>`).join(``)}
@@ -1828,12 +1849,17 @@ function renderAll(){ renderMode(); renderStair(); renderEps(); renderCard(); re
 function refreshData(){ renderMode(); renderEps(); renderOut(false); renderNotebook(); }
 
 /* ---------- events ---------- */
-function setLevel(n){
+/* picking an episode picks its type: 重演 once it has saved cards, otherwise 新演.
+   本级复习 is only ever chosen by hand; a manual choice stands until the next switch. */
+const autoKind = n => savesForEp(n).length ? `replay` : `new`;
+function setLevel(n, keepKind){
+  if (n === state.level) keepKind = true; // tapping the current level is not a switch
   state.level = n;
   if (EPISODES[state.ep - 1].lv !== n) state.ep = EPISODES.findIndex(e => e.lv === n) + 1;
+  if (!keepKind) state.kind = autoKind(state.ep);
   save(); renderAll(); centerStep();
 }
-function setEp(n){ state.ep = n; state.level = EPISODES[n - 1].lv; save(); renderAll(); centerStep(); }
+function setEp(n){ state.ep = n; state.level = EPISODES[n - 1].lv; state.kind = autoKind(n); save(); renderAll(); centerStep(); }
 function goBuilder(){ setTab(`practice`); centerStep(); }
 
 /* tabs */
@@ -1865,8 +1891,8 @@ $(`map`).addEventListener(`click`, e => { const b = e.target.closest(`[data-lv]`
 $(`toc`).addEventListener(`click`, e => {
   const b = e.target.closest(`[data-ep],[data-review]`); if (!b) return;
   state.mode = `story`;
-  if (b.dataset.review) { state.kind = `review`; setLevel(Number(b.dataset.review)); }
-  else { if (state.kind === `review`) state.kind = `new`; setEp(Number(b.dataset.ep)); }
+  if (b.dataset.review) { state.kind = `review`; setLevel(Number(b.dataset.review), true); }
+  else setEp(Number(b.dataset.ep));
   goBuilder();
 });
 $(`topics`).addEventListener(`click`, e => {
@@ -1891,18 +1917,28 @@ $(`copy`).addEventListener(`click`, () => {
 });
 
 $(`paste`).addEventListener(`input`, e => { state.paste = e.target.value; saveSoon(); delete $(`save-status`).dataset.sticky; renderSaveBox(); });
+let saveStatusTimer = null;
 $(`save-btn`).addEventListener(`click`, () => {
   const items = parseCards($(`paste`).value);
   if (!items.length) return;
   const t = saveTarget();
   const btn = $(`save-btn`), st = $(`save-status`);
+  const same = findSameSave(t, items);
+  if (same) {
+    st.dataset.sticky = `1`;
+    st.textContent = `这组卡已经存过了（${fmtDate(same.at)} · ${KIND_LABEL[same.kind] || ``}），没有重复保存。` + (same.kind === `new` || same.kind === `replay` ? `类型记错了的话，到复习本里点这组标题上的「${KIND_LABEL[same.kind]}」切换。` : ``);
+    clearTimeout(saveStatusTimer); saveStatusTimer = setTimeout(() => { delete st.dataset.sticky; renderSaveBox(); }, 6000);
+    return;
+  }
   btn.disabled = true;
   const ok = addSave({ ep:t.ep, lv:t.lv, kind:t.kind, at:new Date().toISOString(), items });
   $(`paste`).value = ``; state.paste = ``; save();
   st.dataset.sticky = `1`;
   const c = items.filter(i => i.t === `E`).length;
   st.textContent = ok ? `已存 ${c} 个表达到这台设备。下次练习开头，AI 会先用中文考你。` : `已加入 ${c} 个表达，但这台设备的存储写不进去（可能是无痕模式或空间不足），刷新后会丢失。`;
-  setTimeout(() => { delete st.dataset.sticky; renderSaveBox(); }, 4000);
+  clearTimeout(saveStatusTimer); saveStatusTimer = setTimeout(() => { delete st.dataset.sticky; renderSaveBox(); }, 4000);
+  // this episode now has cards, so practising it again is a 重演
+  if (ok && state.mode === `story` && state.kind === `new`) { state.kind = `replay`; save(); renderMode(); renderOut(true); }
   renderSaveBox();
 });
 
@@ -1935,6 +1971,8 @@ $(`nb`).addEventListener(`click`, async e => {
     if (!ok && d.isConnected) d.textContent = `没删掉，再试一次`;
     return;
   }
+  const kt = e.target.closest(`[data-kind-toggle]`);
+  if (kt) { toggleKind(kt.dataset.kindToggle); return; }
   const mb = e.target.closest(`[data-master]`);
   if (mb) {
     const sv = store.local.find(x => x.id === mb.dataset.master), it = sv && sv.items[Number(mb.dataset.i)];
