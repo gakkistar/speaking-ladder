@@ -561,7 +561,7 @@ footer{font-size:12px;color:var(--muted)}
       <li>回答时不太需要停下来想、能连着说三四句，就可以试试下一级。</li>
       <li>状态不好的日子，勾上「今天想轻松点」。隔了几天没练，回来从觉得舒服的地方开始。</li>
     </ul>
-    <p class="aside">为什么要重演：同一个口语任务重复做，第二次往往比第一次更流利、更准确，因为内容已经熟了，注意力才腾得出来管表达。为什么开头要考：自己想起来比再看一遍记得牢，隔几天再想一次又会更牢。每次开头先考上一次存的句子，再抽两句更早的，旧的表达就不会慢慢丢掉。</p>
+    <p class="aside">为什么要重演：同一个口语任务重复做，第二次往往比第一次更流利、更准确，因为内容已经熟了，注意力才腾得出来管表达。为什么开头要考：自己想起来比再看一遍记得牢，隔几天再想一次又会更牢。每次开头先考上一次存的句子，再补几句最久没复习过的旧句子（一共 8 句左右），旧的表达会轮流回来，不会慢慢丢掉。</p>
   </section>
 
   <section aria-labelledby="h-story">
@@ -1078,7 +1078,7 @@ function removeSave(id){
 const EXPORT_APP = `speaking-ladder`;
 function exportText(){
   const { paste, tab, ...settings } = state;
-  return JSON.stringify({ app: EXPORT_APP, version: 1, exportedAt: new Date().toISOString(), settings, cards: store.local }, null, 2);
+  return JSON.stringify({ app: EXPORT_APP, version: 1, exportedAt: new Date().toISOString(), settings, quizzed: sync.quizzed, cards: store.local }, null, 2);
 }
 function cleanSave(s){
   if (!s || typeof s !== `object` || typeof s.id !== `string` || !s.id) return null;
@@ -1117,6 +1117,7 @@ function importText(text){
     Object.assign(state, rest); normalizeState(); save();
   }
   if (fresh.length) { fresh.forEach(c => { delete sync.deleted[c.id]; }); persistSync(); scheduleSync(); }
+  if (!Array.isArray(data) && data.quizzed && typeof data.quizzed === `object`) { sync.quizzed = mergeQuizzed(sync.quizzed, data.quizzed); persistSync(); scheduleSync(); }
   return { added: fresh.length, skipped, invalid, settings: !!settings };
 }
 
@@ -1130,6 +1131,7 @@ const GH = `https://api.github.com`;
 const sync = { token:``, gistId:``, deleted:{}, settingsAt:null, lastSync:null };
 try { const o = JSON.parse(localStorage.getItem(SYNC_KEY) || `null`); if (o && typeof o === `object`) Object.assign(sync, o); } catch(e) {}
 if (!sync.deleted || typeof sync.deleted !== `object`) sync.deleted = {};
+if (!sync.quizzed || typeof sync.quizzed !== `object`) sync.quizzed = {}; // cardKey -> when it was last in a copied prompt
 function persistSync(){ try { localStorage.setItem(SYNC_KEY, JSON.stringify(sync)); } catch(e) {} }
 
 const syncedSettings = () => Object.fromEntries(SYNC_KEYS.map(k => [k, state[k]]));
@@ -1142,17 +1144,25 @@ function noteSettingsChange(){
 }
 
 const byTime = (x, y) => String(x.at).localeCompare(String(y.at)) || String(x.id).localeCompare(String(y.id));
-/* snapshot = { cards, deleted, settings, settingsAt } */
+/* quiz log: keep the latest time per card */
+const ISO_TIME = /^\d{4}-\d\d-\d\dT\d\d:\d\d/;
+function mergeQuizzed(a, b){
+  const out = Object.assign({}, a);
+  Object.entries(b || {}).forEach(([k, t]) => { if (typeof t === `string` && ISO_TIME.test(t) && !(String(out[k] || ``) >= t)) out[k] = t; });
+  return out;
+}
+/* snapshot = { cards, deleted, settings, settingsAt, quizzed } */
 function mergeSync(a, b){
   const deleted = Object.assign({}, a.deleted, b.deleted);
   const byId = new Map();
   a.cards.concat(b.cards).forEach(c => { if (c && c.id && !deleted[c.id] && !byId.has(c.id)) byId.set(c.id, c); });
   const newer = String(b.settingsAt || ``) > String(a.settingsAt || ``) ? b : a;
-  return { cards: [...byId.values()].sort(byTime), deleted, settings: newer.settings, settingsAt: newer.settingsAt };
+  return { cards: [...byId.values()].sort(byTime), deleted, settings: newer.settings, settingsAt: newer.settingsAt, quizzed: mergeQuizzed(a.quizzed, b.quizzed) };
 }
 function syncBody(s){
   const deleted = Object.fromEntries(Object.keys(s.deleted).sort().map(k => [k, s.deleted[k]]));
-  return JSON.stringify({ app: EXPORT_APP, version: 1, settingsAt: s.settingsAt, settings: s.settings, deleted, cards: s.cards.slice().sort(byTime) }, null, 1);
+  const quizzed = Object.fromEntries(Object.keys(s.quizzed || {}).sort().map(k => [k, s.quizzed[k]]));
+  return JSON.stringify({ app: EXPORT_APP, version: 1, settingsAt: s.settingsAt, settings: s.settings, deleted, quizzed, cards: s.cards.slice().sort(byTime) }, null, 1);
 }
 function readRemote(text){
   let d = null;
@@ -1162,7 +1172,8 @@ function readRemote(text){
   const deleted = d.deleted && typeof d.deleted === `object` && !Array.isArray(d.deleted) ? d.deleted : {};
   const settings = d.settings && typeof d.settings === `object` && !Array.isArray(d.settings)
     ? Object.fromEntries(SYNC_KEYS.filter(k => k in d.settings).map(k => [k, d.settings[k]])) : null;
-  return { cards, deleted, settings, settingsAt: typeof d.settingsAt === `string` ? d.settingsAt : null };
+  const quizzed = d.quizzed && typeof d.quizzed === `object` && !Array.isArray(d.quizzed) ? mergeQuizzed({}, d.quizzed) : {};
+  return { cards, deleted, settings, settingsAt: typeof d.settingsAt === `string` ? d.settingsAt : null, quizzed };
 }
 
 /* retry: try again in a minute (network / GitHub trouble); fatal: the token itself is the problem */
@@ -1227,10 +1238,11 @@ async function syncNow(){
     const remote = readRemote(text);
     if (!remote.settings && !sync.settingsAt) sync.settingsAt = new Date().toISOString(); // first device seeds the selection
     // read local, merge and apply with no await in between, so edits made meanwhile are never lost
-    const local = { cards: store.local, deleted: sync.deleted, settings: syncedSettings(), settingsAt: sync.settingsAt };
+    const local = { cards: store.local, deleted: sync.deleted, settings: syncedSettings(), settingsAt: sync.settingsAt, quizzed: sync.quizzed };
     const merged = mergeSync(local, remote);
+    // quiz-log changes alone don't re-render: the prompt just copied must stay as it is
     const cardsChanged = JSON.stringify(merged.cards) !== JSON.stringify(store.local.slice().sort(byTime));
-    store.local = merged.cards; sync.deleted = merged.deleted; persistLocal();
+    store.local = merged.cards; sync.deleted = merged.deleted; sync.quizzed = merged.quizzed; persistLocal();
     let settingsChanged = false;
     if (merged.settingsAt !== sync.settingsAt) {
       Object.assign(state, merged.settings);
@@ -1435,14 +1447,6 @@ function itemsOf(saves, type){
   return out;
 }
 function hashStr(s){ let h = 2166136261; for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); } return h >>> 0; }
-function seeded(seed){ let a = seed; return () => { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
-function pick(arr, n, key){
-  const today = new Date().toISOString().slice(0, 10);
-  const rnd = seeded(hashStr(today + `|` + key));
-  const a = arr.slice();
-  for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(rnd() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; }
-  return a.slice(0, n);
-}
 const savesForEp = n => allSaves().filter(s => s.ep === n);
 const savesForLevel = lv => allSaves().filter(s => s.lv === lv);
 function olderSaves(){
@@ -1450,7 +1454,27 @@ function olderSaves(){
   if (state.kind === `review`) return allSaves().filter(s => s.lv < state.level);
   return allSaves().filter(s => (s.ep > 0 && s.ep < state.ep) || (s.ep === 0 && s.lv < state.level));
 }
-const quizLine = it => `- ${it.b || `(no Chinese given)`} → ${it.a}`;
+/* every quiz line of the prompt being built; recorded as "quizzed" when that prompt is copied */
+let quizUsed = [], outQuiz = [];
+const quizLine = it => { quizUsed.push(it); return `- ${it.b || `(no Chinese given)`} → ${it.a}`; };
+const QUIZ_TOTAL = 8;
+/* when this expression was last practised: quizzed in a copied prompt, or saved as an E card */
+function lastTouched(it, info, now){
+  const k = cardKey(it.a), r = info.get(k);
+  const t = [r && r.e || ``, sync.quizzed[k] || ``].map(x => x > now ? now : x); // another device's clock may run ahead
+  return t[0] > t[1] ? t[0] : t[1];
+}
+/* least recently practised first, so older cards take turns instead of being drawn at random */
+function staleFirst(items){
+  const info = masteryInfo(), now = new Date().toISOString();
+  return items.map(it => ({ it, t: lastTouched(it, info, now), k: cardKey(it.a) }))
+    .sort((x, y) => x.t.localeCompare(y.t) || x.k.localeCompare(y.k)).map(x => x.it);
+}
+function recordQuiz(items, at = new Date().toISOString()){
+  if (!items.length) return;
+  items.forEach(it => { const k = cardKey(it.a); if (!(String(sync.quizzed[k] || ``) >= at)) sync.quizzed[k] = at; });
+  persistSync(); scheduleSync();
+}
 const fixedLine = ss => `Sentences I got wrong last time: ${ss.map(s => `"${s.a}" → "${s.b}"`).join(`; `)}. Later in the session, create a chance for me to say them correctly, without pointing it out.`;
 const byNewest = (x, y) => String(y.at).localeCompare(String(x.at));
 function latestSave(){ return allSaves().filter(s => (s.items || []).some(i => i.t === `E` || i.t === `S`)).sort(byNewest)[0] || null; }
@@ -1458,13 +1482,13 @@ function uniqItems(list){ const seen = new Set(); return list.filter(it => { con
 /* what was saved after the most recent session: quizzed at the start of the next one, whatever it is */
 function carryItems(n){ const s = latestSave(); return s ? itemsOf([s], `E`).slice(0, n) : []; }
 function carrySentences(n){ const s = latestSave(); return s ? itemsOf([s], `S`).slice(0, n) : []; }
-/* a couple of older expressions, so earlier material keeps coming back */
+/* older expressions, least recently practised first, so every card keeps coming back in turn */
 function spacedItems(n, exclude){
-  const last = latestSave();
   const skip = new Set((exclude || []).map(it => cardKey(it.a)));
-  const pool = itemsOf(olderSaves().filter(s => s !== last), `E`).filter(it => !skip.has(cardKey(it.a)));
-  return pick(pool, n, `spaced|${state.mode}|${state.kind}|${state.ep}|${state.level}`);
+  return staleFirst(itemsOf(olderSaves(), `E`).filter(it => !skip.has(cardKey(it.a)))).slice(0, n);
 }
+/* the opening quiz: what was saved last time, topped up with the stalest older cards */
+function openingQuiz(){ const carry = carryItems(6); return carry.concat(spacedItems(Math.max(2, QUIZ_TOTAL - carry.length), carry)); }
 function replaySaves(){ const last = latestSave(); const eps = savesForEp(state.ep); return last && !eps.includes(last) ? [last].concat(eps) : eps; }
 
 /* ---------- rendering ---------- */
@@ -1481,8 +1505,8 @@ function renderMode(){
   const L = state.level, n = state.ep;
   let note = ``;
   if (story && state.kind === `new`) {
-    const k = carryItems(6).length;
-    note = k ? `第一次演这一集。开头会先用中文考你上次存的 ${k} 句，再开始演。` : `第一次演这一集。建议从第 1 集开始，就算觉得简单，也先演一两次，让开口这件事变轻松。`;
+    const k = carryItems(6).length, m = openingQuiz().length - k;
+    note = k || m ? `第一次演这一集。开头先用中文考你${k ? `上次存的 ${k} 句` : ``}${k && m ? `，再加 ` : ``}${m ? `${m} 句最久没复习的旧句子` : ``}，然后开始演。` : `第一次演这一集。建议从第 1 集开始，就算觉得简单，也先演一两次，让开口这件事变轻松。`;
   }
   if (story && state.kind === `replay`) {
     const c = Math.min(8, itemsOf(replaySaves(), `E`).length);
@@ -1712,7 +1736,7 @@ const SESSION = `HOW THE SESSION GOES (about 15 minutes; I may stop earlier or k
 
 function freePrompt(){
   const L = LEVELS[state.level - 1];
-  const carry = carryItems(6), quiz = carry.concat(spacedItems(2, carry)), fixed = carrySentences(2);
+  const quiz = openingQuiz(), fixed = carrySentences(2);
   const lines = [
     `You are my English speaking partner. We're going to have a voice conversation.`,
     ``, ABOUT, ``,
@@ -1736,7 +1760,7 @@ function freePrompt(){
 
 function storyNew(){
   const n = state.ep, E = EPISODES[n - 1], L = LEVELS[E.lv - 1], prev = EPISODES[n - 2];
-  const carry = carryItems(6), quiz = carry.concat(spacedItems(2, carry)), fixed = carrySentences(2);
+  const quiz = openingQuiz(), fixed = carrySentences(2);
   const p1 = quiz.length ? 4 : 2, p3 = quiz.length ? 3 : 5;
   const part1 = prev
     ? `Part 1, recap (about ${p1} minutes): Ask me one or two easy questions about what happened last time, so I can retell it in my own words.`
@@ -1809,7 +1833,7 @@ function storyReplay(){
 function storyReview(){
   const lv = state.level, L = LEVELS[lv - 1], R = REVIEWS[lv];
   const eps = EPISODES.map((e, i) => ({ e, n: i + 1 })).filter(x => x.e.lv === lv);
-  const es = uniqItems(carryItems(4).concat(pick(itemsOf(savesForLevel(lv), `E`), 6, `review|${lv}`))).slice(0, 6);
+  const es = uniqItems(carryItems(4).concat(staleFirst(itemsOf(savesForLevel(lv), `E`)))).slice(0, 6);
   const old = spacedItems(2, es);
   const fixed = carrySentences(2);
   const lines = [
@@ -1843,13 +1867,14 @@ function storyReview(){
 }
 
 function buildPrompt(){
+  quizUsed = [];
   if (state.mode === `free`) return freePrompt();
   if (state.kind === `replay`) return storyReplay();
   if (state.kind === `review`) return storyReview();
   return storyNew();
 }
 function renderOut(clear){
-  $(`out`).value = buildPrompt();
+  $(`out`).value = buildPrompt(); outQuiz = quizUsed.slice();
   if (clear) $(`copy-status`).textContent = ``;
 }
 
@@ -1913,9 +1938,15 @@ $(`custom`).addEventListener(`input`, e => { state.custom = e.target.value; save
 $(`opt-zh`).addEventListener(`change`, e => { state.zh = e.target.checked; save(); renderOut(true); });
 $(`opt-easy`).addEventListener(`change`, e => { state.easy = e.target.checked; save(); renderOut(true); });
 
+/* copying the prompt means these cards get quizzed; the prompt on screen stays as it is */
+$(`out`).addEventListener(`copy`, e => {
+  const t = e.target; // only a copy of (nearly) the whole prompt counts
+  if (t.selectionEnd - t.selectionStart >= t.value.length * 0.9) recordQuiz(outQuiz);
+});
 $(`copy`).addEventListener(`click`, () => {
   const out = $(`out`), status = $(`copy-status`), btn = $(`copy`);
   const done = () => {
+    recordQuiz(outQuiz);
     status.textContent = `已复制。去 ChatGPT 新对话里粘贴发送吧。`;
     btn.textContent = `已复制`;
     setTimeout(() => { btn.textContent = `复制提示词`; }, 1800);
