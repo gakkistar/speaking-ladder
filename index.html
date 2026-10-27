@@ -255,6 +255,17 @@ details.save #paste{background:var(--card)}
 .del:hover{color:var(--ink)}
 .del[data-armed="1"]{color:var(--danger);font-weight:600}
 .cards{display:flex;flex-direction:column}
+.card-row{display:flex;align-items:center;gap:4px;border-top:1px solid var(--line)}
+.card-row .card-e{flex:1;min-width:0;border-top:0}
+.mk-btn{flex:none;background:none;border:0;min-height:40px;min-width:44px;padding:0 4px 0 10px;cursor:pointer;font-size:12px;color:var(--muted);white-space:nowrap}
+.mk-btn:hover{color:var(--accent-strong)}
+.mastered{margin-top:12px}
+.mk-item{display:flex;align-items:center;gap:10px;padding:6px 0;border-top:1px solid var(--line)}
+.mk-item:first-child{border-top:0}
+.mk-text{flex:1;min-width:0;display:flex;flex-direction:column}
+.mk-text .en{font-size:15px;font-weight:500}
+.mk-text .zh{font-size:13px;color:var(--muted)}
+.mk-date{flex:none;font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
 .card-e{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);gap:16px;padding:10px 0;min-height:44px;border:0;border-top:1px solid var(--line);background:none;text-align:left;width:100%;cursor:default;align-items:baseline}
 .card-e .en{font-size:16px;font-weight:500;line-height:1.45;border-radius:6px;transition:color .15s,background .15s}
 .card-e .zh{color:var(--muted);font-size:14px}
@@ -443,6 +454,13 @@ footer{font-size:12px;color:var(--muted)}
       </div>
       <p class="muted small" id="nb-note"></p>
       <div class="nb" id="nb"></div>
+      <details class="more mastered" id="mastered" hidden>
+        <summary id="mastered-sum">已掌握（0）</summary>
+        <div class="more-body">
+          <p class="hint">已经能第一次就说对的表达，不再出现在复习本和小测里。以后哪次练习又把它存成要考的表达，它会自动回来。</p>
+          <div id="mastered-list"></div>
+        </div>
+      </details>
     </div>
 
     <aside class="nb-side">
@@ -1002,7 +1020,7 @@ const TOPICS = [
 
 const HELP_PHRASES = [`Pardon?`, `Could you say that again more slowly?`, `What does "…" mean?`, `How do I say "…" in English?`];
 
-const KIND_LABEL = { new:`新演`, replay:`重演`, review:`本级复习`, free:`自由聊` };
+const KIND_LABEL = { new:`新演`, replay:`重演`, review:`本级复习`, free:`自由聊`, mark:`手动标记` };
 
 /* ---------- state ---------- */
 const KEY = `speaking-ladder-v3`;
@@ -1060,7 +1078,7 @@ function cleanSave(s){
   const lv = Number(s.lv), ep = Number(s.ep);
   if (!LEVELS[lv - 1] || !(ep === 0 || EPISODES[ep - 1]) || !KIND_LABEL[s.kind]) return null;
   const items = (Array.isArray(s.items) ? s.items : [])
-    .filter(i => i && [`E`,`G`,`S`].includes(i.t) && typeof i.a === `string` && i.a.trim())
+    .filter(i => i && [`E`,`G`,`S`,`M`].includes(i.t) && typeof i.a === `string` && i.a.trim())
     .map(i => ({ t: i.t, a: i.a.slice(0, 240), b: typeof i.b === `string` ? i.b.slice(0, 240) : `` }));
   if (!items.length) return null;
   return { id: s.id, ep, lv, kind: s.kind, at: typeof s.at === `string` ? s.at : new Date().toISOString(), items };
@@ -1291,7 +1309,7 @@ function parseCards(text){
     if (!line || /^`{3}/.test(line)) return;
     // "- " / "* " need a space so "**bold**" keeps its stars for cleanPart
     line = line.replace(/^>\s*/, ``).replace(/^(?:[-*]\s+|[•·]\s*|\d+[.)、．]\s*)/, ``).trim();
-    const m = line.match(/^([EGSegs])\s*[:：]\s*(.+)$/);
+    const m = line.match(/^([EGSMegsm])\s*[:：]\s*(.+)$/);
     if (m) {
       const p = m[2].split(/\s*[|｜]\s*/);
       push(m[1].toUpperCase(), p[0], p.slice(1).join(` / `));
@@ -1328,12 +1346,59 @@ function parseCards(text){
   });
   return items.slice(0, 30);
 }
+/* ---------- mastered ("已掌握") ----------
+   An expression is mastered while its newest M line is at least as new as its newest E line;
+   saving it as E again brings it back. Keyed like the notebook dedupe (cardKey). */
+let masteryCache = { sig: null, info: null };
+function masteryInfo(saves = allSaves()){
+  const sig = saves === store.local ? saves.map(x => x.id).join() : null;
+  if (sig !== null && sig === masteryCache.sig) return masteryCache.info;
+  const info = new Map();
+  saves.forEach(s => (s.items || []).forEach(i => {
+    if (i.t !== `E` && i.t !== `M`) return;
+    const k = cardKey(i.a), at = String(s.at || ``);
+    const r = info.get(k) || { e: null, m: null, mItem: null, eItem: null };
+    if (i.t === `E` && (r.e === null || at > r.e)) { r.e = at; r.eItem = i; }
+    if (i.t === `M` && (r.m === null || at > r.m)) { r.m = at; r.mItem = i; }
+    info.set(k, r);
+  }));
+  if (sig !== null) masteryCache = { sig, info };
+  return info;
+}
+const isMasteredIn = (info, a) => { const r = info.get(cardKey(a)); return !!(r && r.m !== null && (r.e === null || r.m >= r.e)); };
+function masteredList(){
+  const info = masteryInfo();
+  return [...info.entries()].filter(([, r]) => r.m !== null && (r.e === null || r.m >= r.e))
+    .map(([k, r]) => ({ key: k, a: r.mItem.a, b: r.mItem.b || (r.eItem && r.eItem.b) || ``, at: r.m }))
+    .sort((x, y) => y.at.localeCompare(x.at));
+}
+function markMastered(item, lv){
+  // never older than the newest E for it (another device's clock may run ahead), or the mark wouldn't count
+  const r = masteryInfo().get(cardKey(item.a)), now = new Date().toISOString();
+  const at = r && r.e && r.e > now ? r.e : now;
+  return addSave({ ep: 0, lv, kind: `mark`, at, items: [{ t: `M`, a: item.a, b: item.b || `` }] });
+}
+/* drops every M line for this expression; edited groups are re-saved under a new id so the change syncs */
+function unmaster(key){
+  const now = new Date().toISOString();
+  store.local.slice().forEach(s => {
+    if (!(s.items || []).some(i => i.t === `M` && cardKey(i.a) === key)) return;
+    const rest = s.items.filter(i => !(i.t === `M` && cardKey(i.a) === key));
+    store.local = store.local.filter(x => x !== s); sync.deleted[s.id] = now;
+    if (rest.length) store.local.push(Object.assign({}, s, { id: newId(), items: rest }));
+  });
+  persistLocal(); persistSync(); refreshData(); scheduleSync();
+}
+
 function itemsOf(saves, type){
   const seen = new Set(), out = [];
+  const info = type === `E` || type === `S` ? masteryInfo() : null;
   saves.slice().sort((x, y) => String(y.at).localeCompare(String(x.at))).forEach(s => {
     (s.items || []).forEach(it => {
       if (it.t !== type) return;
-      const k = String(it.a).toLowerCase();
+      if (type === `E` && isMasteredIn(info, it.a)) return;
+      if (type === `S` && isMasteredIn(info, it.b)) return;
+      const k = cardKey(it.a);
       if (seen.has(k)) return;
       seen.add(k); out.push(it);
     });
@@ -1359,16 +1424,16 @@ function olderSaves(){
 const quizLine = it => `- ${it.b || `(no Chinese given)`} → ${it.a}`;
 const fixedLine = ss => `Sentences I got wrong last time: ${ss.map(s => `"${s.a}" → "${s.b}"`).join(`; `)}. Later in the session, create a chance for me to say them correctly, without pointing it out.`;
 const byNewest = (x, y) => String(y.at).localeCompare(String(x.at));
-function latestSave(){ return allSaves().slice().sort(byNewest)[0] || null; }
-function uniqItems(list){ const seen = new Set(); return list.filter(it => { const k = String(it.a).toLowerCase(); if (seen.has(k)) return false; seen.add(k); return true; }); }
+function latestSave(){ return allSaves().filter(s => (s.items || []).some(i => i.t === `E` || i.t === `S`)).sort(byNewest)[0] || null; }
+function uniqItems(list){ const seen = new Set(); return list.filter(it => { const k = cardKey(it.a); if (seen.has(k)) return false; seen.add(k); return true; }); }
 /* what was saved after the most recent session: quizzed at the start of the next one, whatever it is */
 function carryItems(n){ const s = latestSave(); return s ? itemsOf([s], `E`).slice(0, n) : []; }
 function carrySentences(n){ const s = latestSave(); return s ? itemsOf([s], `S`).slice(0, n) : []; }
 /* a couple of older expressions, so earlier material keeps coming back */
 function spacedItems(n, exclude){
   const last = latestSave();
-  const skip = new Set((exclude || []).map(it => String(it.a).toLowerCase()));
-  const pool = itemsOf(olderSaves().filter(s => s !== last), `E`).filter(it => !skip.has(String(it.a).toLowerCase()));
+  const skip = new Set((exclude || []).map(it => cardKey(it.a)));
+  const pool = itemsOf(olderSaves().filter(s => s !== last), `E`).filter(it => !skip.has(cardKey(it.a)));
   return pick(pool, n, `spaced|${state.mode}|${state.kind}|${state.ep}|${state.level}`);
 }
 function replaySaves(){ const last = latestSave(); const eps = savesForEp(state.ep); return last && !eps.includes(last) ? [last].concat(eps) : eps; }
@@ -1484,10 +1549,10 @@ function renderSaveBox(){
   const st = $(`save-status`);
   if (!st.dataset.sticky) {
     if (!$(`paste`).value.trim()) st.textContent = ``;
-    else if (!items.length) st.textContent = `还没认出句子。每行要以 E:、G: 或 S: 开头，比如 E: I prefer building things. | 我更喜欢做开发`;
+    else if (!items.length) st.textContent = `还没认出句子。每行要以 E:、G:、S: 或 M: 开头，比如 E: I prefer building things. | 我更喜欢做开发`;
     else {
-      const c = { E:0, G:0, S:0 }; items.forEach(i => c[i.t]++);
-      st.textContent = `认出 ${c.E} 个要考的表达、${c.S} 个改过的句子、${c.G} 个语法点。`;
+      const c = { E:0, G:0, S:0, M:0 }; items.forEach(i => c[i.t]++);
+      st.textContent = `认出 ${c.E} 个要考的表达、${c.S} 个改过的句子、${c.G} 个语法点${c.M ? `、${c.M} 个已掌握` : ``}。`;
     }
   }
 }
@@ -1505,7 +1570,7 @@ function practiceCounts(saves){
   return n;
 }
 function notebookView(saves, countIn = saves){
-  const counts = practiceCounts(countIn);
+  const counts = practiceCounts(countIn), info = masteryInfo(countIn);
   const seen = { E: new Set(), S: new Set() };
   const view = new Map();
   saves.slice().sort((x, y) => byTime(y, x)).forEach(s => {
@@ -1513,6 +1578,7 @@ function notebookView(saves, countIn = saves){
     (s.items || []).forEach(i => {
       if (i.t === `G`) { v.gs.push(i); return; }
       const k = cardKey(i.a);
+      if (i.t === `E` && isMasteredIn(info, i.a)) return;
       if (seen[i.t] && !seen[i.t].has(k)) {
         seen[i.t].add(k);
         if (i.t === `E`) v.es.push({ item: i, count: counts.get(k) || 1 }); else v.ss.push(i);
@@ -1530,7 +1596,7 @@ function saveHtml(s){
   const seenTag = n => n > 1 ? ` <span class="seen" data-tip="在 ${n} 次练习里出现过" aria-label="在 ${n} 次练习里出现过">×${n}</span>` : ``;
   return `<div class="nb-save">
     <div class="nb-meta"><span>${esc(KIND_LABEL[s.kind] || ``)} · ${esc(fmtDate(s.at))}</span><button type="button" class="del" data-del="${esc(s.id)}">删除</button></div>
-    ${es.length ? `<div class="cards">${es.map(({ item: i, count }) => `<button type="button" class="card-e"><span class="en">${esc(i.a)}</span><span class="zh">${esc(i.b)}${seenTag(count)}</span></button>`).join(``)}</div>` : ``}
+    ${es.length ? `<div class="cards">${es.map(({ item: i, count }) => `<div class="card-row"><button type="button" class="card-e"><span class="en">${esc(i.a)}</span><span class="zh">${esc(i.b)}${seenTag(count)}</span></button><button type="button" class="mk-btn" data-master="${esc(s.id)}" data-i="${s.items.indexOf(i)}" aria-label="标记为已掌握：${esc(i.a)}">已掌握</button></div>`).join(``)}</div>` : ``}
     ${gs.map(i => `<div class="card-g"><span class="unit"><code>${esc(i.b || `语法`)}</code>${esc(i.a)}</span></div>`).join(``)}
     ${ss.map(i => `<div class="card-s">${esc(i.a)} → <b>${esc(i.b)}</b></div>`).join(``)}
   </div>`;
@@ -1550,7 +1616,8 @@ function levelGroups(lv){
 }
 function renderNotebook(){
   const all = allSaves();
-  const total = practiceCounts(all).size;
+  const mInfo = masteryInfo(all);
+  const total = [...practiceCounts(all).keys()].filter(k => !isMasteredIn(mInfo, k)).length;
   const where = sync.token ? `复习卡存在这台设备上，并通过云同步和你的其他设备保持一致。` : `复习卡存在这台设备上。`;
   $(`nb-note`).textContent = `${where}全部共 ${total} 个表达。打开「遮住英文自测」后，看中文想英文，点一下显示答案。`;
   $(`nb-scope`).textContent = state.nbAll ? `只看 Lv${state.level}` : `看全部级别`;
@@ -1561,7 +1628,14 @@ function renderNotebook(){
   if (state.nbAll) { for (let lv = 1; lv <= 11; lv++) html += levelGroups(lv); }
   else html = levelGroups(state.level);
   $(`nb`).innerHTML = html || `<div class="empty">${state.nbAll ? `还没有复习卡。` : `Lv${state.level} 还没有复习卡。`}练完后让 Claude Code 根据对话生成复习卡，贴到「练习」页的「存复习卡」里，卡片会出现在这里。</div>`;
+  renderMastered();
   if (!$(`exp-panel`).hidden) $(`exp-out`).value = exportText();
+}
+function renderMastered(){
+  const list = masteredList();
+  $(`mastered`).hidden = !list.length;
+  $(`mastered-sum`).textContent = `已掌握（${list.length}）`;
+  $(`mastered-list`).innerHTML = list.map(m => `<div class="mk-item"><div class="mk-text"><span class="en">${esc(m.a)}</span><span class="zh">${esc(m.b)}</span></div><span class="mk-date">${esc(fmtDate(m.at))}</span><button type="button" class="mk-btn" data-unmaster="${esc(m.key)}" aria-label="取消已掌握：${esc(m.a)}">取消</button></div>`).join(``);
 }
 
 /* ---------- prompt building ---------- */
@@ -1861,8 +1935,17 @@ $(`nb`).addEventListener(`click`, async e => {
     if (!ok && d.isConnected) d.textContent = `没删掉，再试一次`;
     return;
   }
+  const mb = e.target.closest(`[data-master]`);
+  if (mb) {
+    const sv = store.local.find(x => x.id === mb.dataset.master), it = sv && sv.items[Number(mb.dataset.i)];
+    if (it) markMastered(it, sv.lv);
+    return;
+  }
   const c = e.target.closest(`.card-e`);
   if (c && state.quiz) c.classList.toggle(`revealed`);
+});
+$(`mastered-list`).addEventListener(`click`, e => {
+  const u = e.target.closest(`[data-unmaster]`); if (u) unmaster(u.dataset.unmaster);
 });
 
 /* export / import panels */
