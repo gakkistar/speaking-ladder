@@ -1866,12 +1866,23 @@ function storyReview(){
   return lines.join(`\n`);
 }
 
+/* ChatGPT names the chat after the first message; every prompt used to open the same way,
+   so all chats were called "英语口语练习". A first line naming the episode and date fixes that. */
+function chatTitle(){
+  const d = new Date(), date = `${d.getMonth() + 1}/${d.getDate()}`;
+  let what;
+  if (state.mode === `free`) {
+    const t = TOPICS.find(x => x.id === state.topic);
+    const topic = t.id === `custom` ? state.custom.trim().slice(0, 12) : t.id === `auto` ? `` : t.label;
+    what = `Lv${state.level} 自由聊${topic ? ` · ${topic}` : ``}`;
+  } else if (state.kind === `review`) what = `Lv${state.level} 本级复习《${REVIEWS[state.level].title}》`;
+  else what = `第 ${state.ep} 集《${EPISODES[state.ep - 1].title}》· ${KIND_LABEL[state.kind]}`;
+  return `Chat title: 口语阶梯 · ${what} · ${date}`.replace(/》 ·/g, `》·`);
+}
 function buildPrompt(){
   quizUsed = [];
-  if (state.mode === `free`) return freePrompt();
-  if (state.kind === `replay`) return storyReplay();
-  if (state.kind === `review`) return storyReview();
-  return storyNew();
+  const body = state.mode === `free` ? freePrompt() : state.kind === `replay` ? storyReplay() : state.kind === `review` ? storyReview() : storyNew();
+  return chatTitle() + `\n\n` + body.replace(/^You are my English speaking partner\./, `$& (The "Chat title" line above is only a label for this chat.)`);
 }
 function renderOut(clear){
   $(`out`).value = buildPrompt(); outQuiz = quizUsed.slice();
