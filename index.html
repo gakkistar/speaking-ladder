@@ -245,8 +245,17 @@ details.save #paste{background:var(--card)}
 .nb-head h2{font-size:30px}
 .nb-tools{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
 .nb-tools .check{background:var(--card);border-radius:12px;box-shadow:var(--shadow-1);min-height:44px}
-.nb{display:flex;flex-direction:column;gap:24px}
+.nb{display:flex;flex-direction:column;gap:12px}
 .nb-group{display:flex;flex-direction:column;gap:10px}
+.nb-level{border-radius:var(--r)}
+.nb-level>summary{list-style:none;cursor:pointer;display:flex;align-items:baseline;flex-wrap:wrap;gap:4px 10px;min-height:52px;padding:14px 16px;background:var(--card);border-radius:var(--r);box-shadow:var(--shadow-1)}
+.nb-level>summary::-webkit-details-marker{display:none}
+.nb-level>summary::after{content:"";align-self:center;margin-left:auto;flex:none;width:8px;height:8px;border-right:2px solid var(--muted);border-bottom:2px solid var(--muted);transform:translateY(-2px) rotate(45deg);transition:transform .15s}
+.nb-level[open]>summary::after{transform:translateY(2px) rotate(-135deg)}
+.nb-lv{font-size:14px;font-weight:700;color:var(--accent-strong);font-variant-numeric:tabular-nums}
+.nb-lv-name{font-size:17px;font-weight:700}
+.nb-lv-meta{font-size:13px;color:var(--muted)}
+.nb-level-body{display:flex;flex-direction:column;gap:24px;padding-top:16px}
 .nb-group h3{font-size:17px;display:flex;align-items:baseline;gap:8px;padding-left:4px}
 .nb-group h3 span{font-size:13px;color:var(--accent-strong)}
 .nb-save{background:var(--card);border-radius:var(--r);padding:4px 16px 12px;display:flex;flex-direction:column;gap:4px;box-shadow:var(--shadow-1)}
@@ -456,7 +465,7 @@ footer{font-size:12px;color:var(--muted)}
         <h2 id="h-nb">复习本</h2>
         <div class="nb-tools">
           <label class="check"><input type="checkbox" id="nb-quiz"> 遮住英文自测</label>
-          <button type="button" class="btn ghost" id="nb-scope">看全部级别</button>
+          <button type="button" class="btn ghost" id="nb-scope">全部展开</button>
         </div>
       </div>
       <p class="muted small" id="nb-note"></p>
@@ -1031,7 +1040,7 @@ const KIND_LABEL = { new:`新演`, replay:`重演`, review:`本级复习`, free:
 
 /* ---------- state ---------- */
 const KEY = `speaking-ladder-v3`;
-let state = { mode:`story`, kind:`new`, level:1, ep:1, topic:`auto`, custom:``, zh:true, easy:false, nbAll:false, quiz:false, paste:``, tab:`practice` };
+let state = { mode:`story`, kind:`new`, level:1, ep:1, topic:`auto`, custom:``, zh:true, easy:false, nbOpen:{}, quiz:false, paste:``, tab:`practice` };
 try {
   const s = JSON.parse(localStorage.getItem(KEY) || localStorage.getItem(`speaking-ladder-v2`) || `null`);
   if (s && typeof s === `object`) state = Object.assign(state, s);
@@ -1046,6 +1055,8 @@ function normalizeState(){
   state.zh = state.zh === undefined ? true : !!state.zh; state.easy = !!state.easy;
   if (typeof state.paste !== `string`) state.paste = ``;
   if (![`practice`,`notebook`,`guide`].includes(state.tab)) state.tab = `practice`;
+  if (!state.nbOpen || typeof state.nbOpen !== `object` || Array.isArray(state.nbOpen)) state.nbOpen = {};
+  delete state.nbAll;
   if (EPISODES[state.ep - 1].lv !== state.level) state.ep = EPISODES.findIndex(e => e.lv === state.level) + 1;
 }
 normalizeState();
@@ -1077,7 +1088,7 @@ function removeSave(id){
 /* ---------- export / import (manual sync between devices) ---------- */
 const EXPORT_APP = `speaking-ladder`;
 function exportText(){
-  const { paste, tab, ...settings } = state;
+  const { paste, tab, nbOpen, ...settings } = state;
   return JSON.stringify({ app: EXPORT_APP, version: 1, exportedAt: new Date().toISOString(), settings, quizzed: sync.quizzed, cards: store.local }, null, 2);
 }
 function cleanSave(s){
@@ -1113,7 +1124,7 @@ function importText(text){
     if (!persistLocal()) { store.local = store.local.slice(0, store.local.length - fresh.length); throw new Error(`这台设备的存储写不进去（可能是无痕模式或空间不足），没有导入。`); }
   }
   if (settings) {
-    const { paste, tab, ...rest } = settings;
+    const { paste, tab, nbOpen, nbAll, ...rest } = settings;
     Object.assign(state, rest); normalizeState(); save();
   }
   if (fresh.length) { fresh.forEach(c => { delete sync.deleted[c.id]; }); persistSync(); scheduleSync(); }
@@ -1667,20 +1678,32 @@ function levelGroups(lv){
   html += groupHtml(`自由聊`, `Lv${lv}`, allSaves().filter(s => s.lv === lv && s.kind === `free`));
   return html;
 }
+/* every level with cards gets a folding section; the one being practised starts open,
+   after that each level remembers being opened or folded (on this device only) */
+const levelOpen = lv => lv in state.nbOpen ? !!state.nbOpen[lv] : lv === state.level;
+function levelSection(lv){
+  const body = levelGroups(lv);
+  if (!body) return ``;
+  const saves = allSaves().filter(s => s.lv === lv && nbView.has(s.id));
+  const n = saves.reduce((t, s) => t + nbView.get(s.id).es.length, 0);
+  const last = saves.map(s => s.at).sort().pop();
+  const L = LEVELS[lv - 1];
+  return `<details class="nb-level" data-lv="${lv}"${levelOpen(lv) ? ` open` : ``}><summary><span class="nb-lv">Lv${lv}</span><span class="nb-lv-name">${esc(L.name)}</span><span class="nb-lv-meta">${n ? `${n} 个表达` : `没有要考的表达`}${last ? ` · ${esc(fmtDate(last))}` : ``}</span></summary><div class="nb-level-body">${body}</div></details>`;
+}
 function renderNotebook(){
   const all = allSaves();
   const mInfo = masteryInfo(all);
   const total = [...practiceCounts(all).keys()].filter(k => !isMasteredIn(mInfo, k)).length;
   const where = sync.token ? `复习卡存在这台设备上，并通过云同步和你的其他设备保持一致。` : `复习卡存在这台设备上。`;
   $(`nb-note`).textContent = `${where}全部共 ${total} 个表达。打开「遮住英文自测」后，看中文想英文，点一下显示答案。`;
-  $(`nb-scope`).textContent = state.nbAll ? `只看 Lv${state.level}` : `看全部级别`;
+
   document.getElementById(`nb`).classList.toggle(`quiz`, !!state.quiz);
   $(`nb-quiz`).checked = !!state.quiz;
-  nbView = notebookView(state.nbAll ? all : all.filter(s => s.lv === state.level), all);
+  nbView = notebookView(all);
   let html = ``;
-  if (state.nbAll) { for (let lv = 1; lv <= 11; lv++) html += levelGroups(lv); }
-  else html = levelGroups(state.level);
-  $(`nb`).innerHTML = html || `<div class="empty">${state.nbAll ? `还没有复习卡。` : `Lv${state.level} 还没有复习卡。`}练完后让 Claude Code 根据对话生成复习卡，贴到「练习」页的「存复习卡」里，卡片会出现在这里。</div>`;
+  for (let lv = 1; lv <= LEVELS.length; lv++) html += levelSection(lv);
+  $(`nb`).innerHTML = html || `<div class="empty">还没有复习卡。练完后让 Claude Code 根据对话生成复习卡，贴到「练习」页的「存复习卡」里，卡片会出现在这里。</div>`;
+  syncScopeBtn();
   renderMastered();
   if (!$(`exp-panel`).hidden) $(`exp-out`).value = exportText();
 }
@@ -2007,7 +2030,22 @@ $(`nb`).addEventListener(`touchstart`, e => {
 /* the tap that ends a long press must not also flip the card in quiz mode */
 $(`nb`).addEventListener(`click`, e => { if (tipShown && e.target.closest(`.seen`)) { tipShown = false; e.stopImmediatePropagation(); } }, true);
 $(`nb-quiz`).addEventListener(`change`, e => { state.quiz = e.target.checked; save(); renderNotebook(); });
-$(`nb-scope`).addEventListener(`click`, () => { state.nbAll = !state.nbAll; save(); renderNotebook(); });
+function syncScopeBtn(){
+  const ds = [...document.querySelectorAll(`#nb .nb-level`)];
+  $(`nb-scope`).hidden = ds.length < 2;
+  $(`nb-scope`).textContent = ds.length && ds.every(d => d.open) ? `全部收起` : `全部展开`;
+}
+$(`nb-scope`).addEventListener(`click`, () => {
+  const ds = [...document.querySelectorAll(`#nb .nb-level`)], open = !ds.every(d => d.open);
+  ds.forEach(d => { d.open = open; state.nbOpen[d.dataset.lv] = open; });
+  save(); syncScopeBtn();
+});
+/* <details> fires "toggle" without bubbling, so listen in the capture phase */
+$(`nb`).addEventListener(`toggle`, e => {
+  const d = e.target; if (!d.classList || !d.classList.contains(`nb-level`)) return;
+  if (levelOpen(Number(d.dataset.lv)) !== d.open) { state.nbOpen[d.dataset.lv] = d.open; save(); }
+  syncScopeBtn();
+}, true);
 $(`nb`).addEventListener(`click`, async e => {
   const d = e.target.closest(`[data-del]`);
   if (d) {
