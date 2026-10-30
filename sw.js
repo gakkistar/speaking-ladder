@@ -1,6 +1,6 @@
 /* Offline-first service worker for 口语阶梯.
    After changing index.html (or any precached file), bump VERSION so phones pick up the new copy. */
-const VERSION = `v15`;
+const VERSION = `v16`;
 const CACHE = `speaking-ladder-${VERSION}`;
 const FONT_CACHE = `speaking-ladder-fonts`;
 const PRECACHE = [

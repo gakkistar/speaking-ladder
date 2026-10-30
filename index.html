@@ -184,6 +184,14 @@ textarea::placeholder,input::placeholder{color:var(--muted);opacity:.85;font-siz
 .now-k{font-size:13px;font-weight:600;color:var(--muted)}
 .now{font-size:24px;font-weight:700;line-height:1.25}
 #kind-note{font-size:13px;color:var(--muted);line-height:1.5}
+.brief{background:var(--card);border-radius:var(--r);box-shadow:var(--shadow-1);padding:14px 16px;display:flex;flex-direction:column;gap:8px}
+.brief-head{font-size:16px;font-weight:700;display:flex;align-items:baseline;flex-wrap:wrap;gap:4px 10px}
+.brief-head span{font-size:12px;font-weight:600;color:var(--accent-strong)}
+.brief dl{margin:0;display:flex;flex-direction:column;gap:6px}
+.brief-row{display:grid;grid-template-columns:5.2em minmax(0,1fr);gap:8px;font-size:14px;line-height:1.55}
+.brief dt{color:var(--muted)}
+.brief dd{margin:0}
+.brief ul{margin:0;padding-left:1.1em}
 .flow{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:6px;counter-reset:f}
 .flow li{counter-increment:f;display:flex;gap:10px;align-items:baseline;font-size:14px;color:var(--muted)}
 .flow li::before{content:counter(f);flex:none;display:inline-grid;place-content:center;width:20px;height:20px;border-radius:50%;background:var(--tint);color:var(--accent-strong);font-size:12px;font-weight:700;transform:translateY(-1px)}
@@ -210,6 +218,7 @@ details.save #paste{background:var(--card)}
   #ep-field,#topic-field{order:2}
   .go-head{order:3}
   #kind-field{order:4}
+  .brief{order:5}
   .options{order:5}
   #copy{order:6;position:sticky;bottom:calc(16px + env(safe-area-inset-bottom,0px));z-index:5;box-shadow:var(--shadow-2)}
   .flow{order:7}
@@ -405,6 +414,7 @@ footer{font-size:12px;color:var(--muted)}
         <div class="topics" id="topics" role="group" aria-label="选择话题"></div>
         <input id="custom" type="text" placeholder="写一个你想聊的话题，比如：我最近在读的书" hidden>
       </div>
+      <section class="brief" id="brief" aria-label="开演前看一眼" hidden></section>
       <details class="more" id="level-more">
         <summary>这一级的语法和句式</summary>
         <div class="more-body"><div id="card"></div></div>
@@ -1035,6 +1045,65 @@ const TOPICS = [
 ];
 
 const HELP_PHRASES = [`Pardon?`, `Could you say that again more slowly?`, `What does "…" mean?`, `How do I say "…" in English?`];
+
+/* Chinese briefs shown on the practice page ("开演前看一眼"), one per episode, in EPISODES order.
+   They only explain the scene to me; the prompt still uses the English fields above. */
+const EP_ZH = [
+  { scene:`你第一天到 Clearwater 上海办公室上班，组长 Maya 在前台接你，带你四处看看。`, roles:`Maya（组长）`, goals:[`介绍自己：名字、家乡、工作`, `回答平时做什么、喜欢什么`, `问 Maya 一个关于团队的简单问题`] },
+  { scene:`Tom 和 Priya 带你去公司附近一家小面馆，大家边看菜单边聊。`, roles:`Tom、Priya 和服务员`, goals:[`点菜`, `说你喜欢吃什么、不喜欢吃什么`, `问他们午饭一般吃什么`] },
+  { scene:`周五下午你在茶水间泡茶，Tom 进来问你在忙什么、周末一般干什么；快结束时他提到下周六团建徒步。`, roles:`Tom`, goals:[`说这周在忙什么`, `讲一个平常的周末`, `问 Tom 他周末都干什么`] },
+  { scene:`周一早上，Maya 走到你桌边，问你周末过得怎么样。`, roles:`Maya`, goals:[`按顺序讲周末做的三四件事`, `说清什么时候、在哪`, `问问 Maya 的周末`] },
+  { scene:`你迟到了四十分钟：地铁停运，手机又没电。Priya 问你怎么回事。`, roles:`Priya`, goals:[`一步一步讲经过`, `用上时间词：at 8:15、after that、in the end`, `简单道个歉`] },
+  { scene:`团建徒步之后的周一，Tom 那天没去，想听你讲讲。`, roles:`Tom`, goals:[`讲那天：几点出发、去了哪、看到和吃了什么`, `回答 Tom 的问题`, `问他为什么没来`] },
+  { scene:`团队午饭时，Priya 和 Tom 比谁去过的地方多，也问你去过哪。`, roles:`Priya 和 Tom`, goals:[`说去过和没去过的地方`, `用过去时补细节：什么时候、和谁、怎么样`, `反问他们 "Have you ever...?"`] },
+  { scene:`入职三个月，Maya 和你一对一聊近况；最后她提到温哥华有一个半年的外派机会。`, roles:`Maya`, goals:[`说到目前做了什么、学到了什么`, `说最近在忙什么`, `说还没做的事`] },
+  { scene:`你和温哥华办公室的经理 Daniel 视频面谈，聊外派的事。`, roles:`Daniel（温哥华的经理）`, goals:[`讲你的经历：做了多久（for / since）`, `说有没有在国外生活或旅行过`, `问 Daniel 一两个关于团队的问题`] },
+  { scene:`出发前两周，Priya 陪你喝咖啡，帮你理清机票、行李和住处。`, roles:`Priya`, goals:[`说出发前打算做的事`, `说定好的安排和日期，比如 I'm flying on...`, `猜猜温哥华的生活会怎样`] },
+  { scene:`团队请你吃送别饭，大家问你到温哥华的打算，Tom 还让你答应几件事。`, roles:`Maya、Tom 和 Priya`, goals:[`说在温哥华的打算`, `用 will 做承诺和临时决定，比如 I'll send you photos`, `猜猜那边会是什么样`] },
+  { scene:`你在上海机场，给温哥华的新室友 Jake 打电话，约好落地后怎么碰头。`, roles:`Jake（温哥华的室友）`, goals:[`告诉 Jake 航班和到达时间`, `约好在哪、怎么碰面`, `说到了以后要做什么`] },
+  { scene:`到温哥华的第一晚，Jake 讲合租的规矩：垃圾、厨房、来客和安静时间。`, roles:`Jake`, goals:[`问哪些必须做、哪些不用做`, `礼貌地提请求：Could I...? Is it OK if...?`, `提个建议：We could...`] },
+  { scene:`你在温哥华办公室的第一周，Daniel 给你一些建议；你还发现一些不同，比如周五四点半大家就下班了。`, roles:`Daniel`, goals:[`请教建议：Should I...?`, `猜原因：It might be because... / It must be...`, `回应 Daniel 的建议`] },
+  { scene:`你想开始在温哥华周边徒步，去户外店买冲锋衣和登山鞋，店员给你建议。`, roles:`户外店店员`, goals:[`说清你需要什么`, `问该买什么、什么不用买`, `礼貌地问：Could I try...?`] },
+  { scene:`住了一个月，Jake 问你喜不喜欢这个街区，温哥华和上海比怎么样。`, roles:`Jake`, goals:[`描述你住的街区：店、街道、人`, `比较温哥华和上海`, `说最喜欢什么、最想念什么`] },
+  { scene:`你去相机店挑一支拍风景的镜头，店员拿出两款给你比较。`, roles:`相机店店员`, goals:[`说你想拍什么样的照片`, `比较两款：更轻、更锐、更贵`, `决定买哪一款，说出理由`] },
+  { scene:`温哥华团队办百乐餐，你带了一道中国菜；同事问起这道菜，Daniel 给你介绍谁是谁。`, roles:`Daniel 和几位同事`, goals:[`介绍你带的菜：什么味道、怎么做`, `比较几道菜`, `用定语从句说人：the guy who...`] },
+  { scene:`你第一次独自徒步，起了大雾、走丢了路，很晚才回来，现在讲给 Jake 听。`, roles:`Jake`, goals:[`讲清背景、经过和结局：It was raining when...`, `用过去完成时：I had already...`, `回答 Jake 的问题`] },
+  { scene:`Daniel 请几位同事到家里吃饭，大家聊起小时候的事。`, roles:`Daniel 和他的伴侣`, goals:[`说小时候常做什么：I used to...`, `讲一个小时候的小故事`, `问问别人小时候的事`] },
+  { scene:`你和上海的 Priya 视频，讲钱包落在公交上又找回来的经过。`, roles:`Priya`, goals:[`按顺序讲：while... / by the time... / had already...`, `说说当时的感受`, `回答 Priya 的问题`] },
+  { scene:`你有两周假，想开车去落基山；Jake 去不了，你得一个人去，你们商量计划和可能出的状况。`, roles:`Jake`, goals:[`说不同情况下你会怎么办：If..., I'd...`, `为意外做准备：in case / unless / as long as`, `说你希望有什么：I wish I had...`] },
+  { scene:`在班夫，你发现营地订错了日期，住在营地的摄影师 Anna 帮你想办法。`, roles:`Anna（摄影师）`, goals:[`说后悔：If I had checked..., I would have...`, `说可以怎么办：If we..., we could...`, `说你希望怎样`] },
+  { scene:`那天晚上，你和 Anna 坐在篝火边，聊「如果可以重新选」：工作、住哪、怎么过这一辈子。`, roles:`Anna`, goals:[`回答和提出假设问题：What would you do if...?`, `说说你的愿望`, `说出选择的理由`] },
+  { scene:`在贾斯珀附近的游客中心，你得知山火封了公路；你问护林员几个问题，再打电话把情况告诉 Jake。`, roles:`护林员，然后是 Jake`, goals:[`礼貌地间接提问：Do you know when...?`, `用被动语态说消息：The road has been closed...`, `把护林员说的话转告 Jake`] },
+  { scene:`旅行回到温哥华，你和上海的 Tom 视频；他说办公室的消息，你讲旅途中别人说过的话。`, roles:`Tom`, goals:[`转述别人说的话：Anna told me that...`, `回应 Tom 的消息`, `打听别人的近况：Do you know if Maya...?`] },
+  { scene:`早上在温哥华办公室喝咖啡，Daniel 问有没有人看到最新的 AI 新闻，你分享一条你读到的（先自己准备一条真实新闻）。`, roles:`Daniel 和一位同事`, goals:[`转述新闻：It was announced that... / They said...`, `用被动语态说谁做的：It was developed by...`, `说说你的看法`] },
+  { scene:`组会上讨论要不要换一个新的 AI 编程工具，Daniel 问你的看法，然后故意唱反调。`, roles:`Daniel 和一位同事`, goals:[`给出观点和两个理由`, `别人反对时回应：That's a fair point, but...`, `用上 although / even though`] },
+  { scene:`午饭时两个同事在争论：远程办公还是坐班，大城市还是小城市。`, roles:`两位观点相反的同事`, goals:[`说你更愿意怎样、为什么：I'd rather...`, `礼貌地同意和反对`, `对方说得有道理时稍微改变看法`] },
+  { scene:`Daniel 提出让你在温哥华多待一段时间，晚上你和 Jake 商量去留。`, roles:`Jake`, goals:[`说两边的理由：Although..., I...`, `说你更想怎样`, `回应 Jake 的看法，然后做决定，或说明为什么还定不下来`] },
+  { scene:`你们组的一个服务昨晚挂了一小时，Daniel 让你讲清楚发生了什么。`, roles:`Daniel`, goals:[`按顺序讲：问题、做了什么、结果`, `用上 The problem was that... / ..., which meant that...`, `把追问回答清楚`] },
+  { scene:`一位新同事想开始徒步，问你在不列颠哥伦比亚省怎么规划一条安全的路线。`, roles:`那位新同事`, goals:[`一步一步讲怎么做`, `讲每一步为什么重要`, `用上短语动词：check out、set off、turn back`] },
+  { scene:`外派半年结束，你向温哥华团队汇报工作、回答提问；之后 Maya 从上海打来电话，问你进展和决定。`, roles:`Daniel 和同事们，然后是 Maya`, goals:[`简短清楚地总结你的工作`, `回答大家的提问`, `跟 Maya 讲这段经历和你的决定`] }
+];
+const TWISTS_ZH = [
+  `中途出点小状况（来电话、饮料洒了、弄混了什么），你得处理一下。`,
+  `对方赶时间，你要说得又快又清楚。`,
+  `中途有新人加入，你得把事情再讲一遍。`,
+  `对方误会了你一次，你得换个说法。`,
+  `对方特别好奇，追问得比上次多。`,
+  `同样的场景，但已经过了一周，有些事变了。`
+];
+const REVIEWS_ZH = {
+  1:{ scene:`入职一周后，你下班和 Maya 还有她的朋友 Ben 去喝一杯，Ben 问起你的新工作、日常和喜好。`, roles:`Ben（Maya 偶尔插话）` },
+  2:{ scene:`在上海的周末市集，你碰到 Priya 的室友 Lily，她问你最近在忙什么，你讲最近上班的事和团建徒步。`, roles:`Lily` },
+  3:{ scene:`离开上海前，你和大学同学 Kevin 吃午饭；他没在国外工作过，想听你在 Clearwater 做过的事和去过的地方。`, roles:`Kevin` },
+  4:{ scene:`在飞往温哥华的飞机上，你和邻座的退休老师 Linda 聊接下来半年的打算。`, roles:`Linda` },
+  5:{ scene:`温哥华办公室来了一位从中国来的实习生 Mia，你给她建议：办公室、找房子、徒步该买什么不该买什么。`, roles:`Mia（她和你说英语）` },
+  6:{ scene:`多伦多的朋友 Sam 想来温哥华玩，你在视频里介绍这座城市，比较各个街区、吃的和物价。`, roles:`Sam` },
+  7:{ scene:`在一个徒步爱好者聚会上，组织者 Rosa 让每个人讲一个最近几个月的故事，你讲了几个。`, roles:`Rosa 和另一位徒步者` },
+  8:{ scene:`回到温哥华，Jake 问你如果再走一遍落基山会怎么安排，再有两周假会干什么。`, roles:`Jake` },
+  9:{ scene:`公司内部播客的主持人 Ellie 采访你，聊这次旅行、山火和你最近关注的新闻。`, roles:`播客主持人 Ellie` },
+  10:{ scene:`团队复盘会上，Daniel 请大家坦诚地说：这半年哪些顺利、哪些不顺、团队该改什么。`, roles:`Daniel 和一位同事` },
+  11:{ scene:`你在公司的最后几天，几位新同事约你喝咖啡，问公司怎么运作、你学到了什么。`, roles:`两位新同事` }
+};
 
 const KIND_LABEL = { new:`新演`, replay:`重演`, review:`本级复习`, free:`自由聊`, mark:`手动标记` };
 
@@ -1724,9 +1793,10 @@ const STORY = [
 const QUIZ_HOW = `Quiz me one at a time: say the Chinese, and I try to say the English. If I can't, give me the first word as a hint, then the full answer, and ask me to say it once. Keep it quick and friendly.`;
 
 function talkRules(L, story){
+  const except = story ? ` (apart from that one Chinese sentence when the scene starts)` : ``;
   const zhRule = state.zh
-    ? `If I say a word or a sentence in Chinese, give me a short, natural way to say it in English, ask me to repeat it once, then carry on. Always reply in English, even when I use Chinese.`
-    : `Keep the whole conversation in English. If I get stuck, offer me a simpler English word or a sentence starter.`;
+    ? `If I say a word or a sentence in Chinese, give me a short, natural way to say it in English, ask me to repeat it once, then carry on. Always reply in English, even when I use Chinese${except}.`
+    : `Keep the whole conversation in English${except}. If I get stuck, offer me a simpler English word or a sentence starter.`;
   const r = [
     `HOW TO TALK WITH ME`,
     story ? `1. Keep your turns short, also when you're in character: one to three sentences, then ask me ONE question.` : `1. Keep your turns short: one to three sentences, then ask me ONE question.`,
@@ -1808,6 +1878,7 @@ function storyNew(){
   if (fixed.length) lines.push(fixedLine(fixed));
   lines.push(
     `Part 2, the scene (about 8 minutes): Say "Scene starts", set the scene in one or two sentences, then stay in character. Steer the scene so that Leo's goals come up naturally. Add small events and questions to keep it going, and don't let it end too quickly.`,
+    `When you say "Scene starts", first tell me in one short Chinese sentence where we are, who you are playing and what Leo needs to do. Then switch to English and stay in English.`,
     `Part 3, real life (about ${p3} minutes): Say "Scene ends", step out of the story and ask me about my own life: ${E.real}.`,
     `If I say "next part", move on to the next part straight away.`,
     ``, ...talkRules(L, true), ``, ...tail(), ``,
@@ -1822,7 +1893,7 @@ function storyReplay(){
   const es = itemsOf(saves, `E`).slice(0, 8);
   const gs = itemsOf(saves, `G`).slice(0, 2);
   const ss = itemsOf(saves, `S`).slice(0, 2);
-  const twist = TWISTS[hashStr(new Date().toISOString().slice(0, 10) + `|` + n) % TWISTS.length];
+  const twist = TWISTS[twistIndex(n)];
   const lines = [
     `You are my English speaking partner. Today we'll replay one episode of an ongoing story, as a voice conversation. I've played it before; this time it should go a bit differently.`,
     ``, ABOUT, ``, ...STORY,
@@ -1845,6 +1916,7 @@ function storyReplay(){
   if (ss.length) lines.push(fixedLine(ss));
   lines.push(
     `Part 2, the scene (about 8 minutes): Say "Scene starts", set the scene in one or two sentences, then stay in character. Include the change above. Create chances for me to use the expressions from Part 1 again, without telling me which ones.`,
+    `When you say "Scene starts", first tell me in one short Chinese sentence where we are, who you are playing and what Leo needs to do. Then switch to English and stay in English.`,
     `Part 3, real life (about 3 minutes): Say "Scene ends", step out of the story and ask me about my own life, from a different angle than last time: ${E.real}.`,
     `If I say "next part", move on to the next part straight away.`,
     ``, ...talkRules(L, true), ``, ...tail(), ``,
@@ -1881,6 +1953,7 @@ function storyReview(){
   if (fixed.length) lines.push(fixedLine(fixed));
   lines.push(
     `Part 2, the scene (about 7 minutes): Say "Scene starts", set the scene in one or two sentences, then stay in character. Ask about the things that happened in these episodes, so I have to use this level's grammar to talk about them.`,
+    `When you say "Scene starts", first tell me in one short Chinese sentence where we are, who you are playing and what Leo needs to do. Then switch to English and stay in English.`,
     `Part 3, retell (about 4 minutes): Say "Scene ends". Ask me to retell the episodes of this part one at a time, in my own words. After each one, ask one short question.`,
     `If I say "next part", move on to the next part straight away.`,
     ``, ...talkRules(L, true), ``, ...tail(), ``,
@@ -1902,6 +1975,8 @@ function chatTitle(){
   else what = `第 ${state.ep} 集《${EPISODES[state.ep - 1].title}》· ${KIND_LABEL[state.kind]}`;
   return `Chat title: 口语阶梯 · ${what} · ${date}`.replace(/》 ·/g, `》·`);
 }
+/* the replay change of the day for episode n (same pick for the prompt and the 中文 card) */
+function twistIndex(n){ return hashStr(new Date().toISOString().slice(0, 10) + `|` + n) % TWISTS.length; }
 function buildPrompt(){
   quizUsed = [];
   const body = state.mode === `free` ? freePrompt() : state.kind === `replay` ? storyReplay() : state.kind === `review` ? storyReview() : storyNew();
@@ -1912,8 +1987,31 @@ function renderOut(clear){
   if (clear) $(`copy-status`).textContent = ``;
 }
 
-function renderAll(){ renderMode(); renderStair(); renderEps(); renderCard(); renderTopics(); renderOut(true); renderSaveBox(); renderNotebook(); }
-function refreshData(){ renderMode(); renderEps(); renderOut(false); renderNotebook(); }
+/* 「开演前看一眼」: the story in Chinese, since the prompt itself is English and I don't read it */
+function renderBrief(){
+  const el = $(`brief`);
+  if (state.mode !== `story`) { el.hidden = true; return; }
+  const row = (k, v) => `<div class="brief-row"><dt>${k}</dt><dd>${v}</dd></div>`;
+  const me = row(`你演`, `Leo，二十八九岁的中国程序员`);
+  const list = a => `<ul>${a.map(g => `<li>${esc(g)}</li>`).join(``)}</ul>`;
+  let head, rows;
+  if (state.kind === `review`) {
+    const lv = state.level, R = REVIEWS_ZH[lv];
+    head = `Lv${lv} 本级复习 · ${esc(REVIEWS[lv].title)}`;
+    rows = row(`场景`, esc(R.scene)) + me + row(`对方`, esc(R.roles)) + row(`你要做到`, list([`用这一级的说法聊最近发生的事`, `最后把这一级的三集按顺序复述一遍`]));
+  } else {
+    const n = state.ep, Z = EP_ZH[n - 1], prev = EPISODES[n - 2];
+    head = `第 ${n} 集 · ${esc(EPISODES[n - 1].title)}`;
+    rows = (state.kind === `replay`
+        ? row(`上次`, esc(EPISODES[n - 1].zh)) + row(`这次的变化`, esc(TWISTS_ZH[twistIndex(n)]))
+        : row(`前情`, prev ? esc(prev.zh) : `这是第一集，故事从这里开始。`))
+      + row(`场景`, esc(Z.scene)) + me + row(`对方`, esc(Z.roles)) + row(`你要做到`, list(Z.goals));
+  }
+  el.innerHTML = `<p class="brief-head"><span>开演前看一眼</span>${head}</p><dl>${rows}</dl>`;
+  el.hidden = false;
+}
+function renderAll(){ renderMode(); renderBrief(); renderStair(); renderEps(); renderCard(); renderTopics(); renderOut(true); renderSaveBox(); renderNotebook(); }
+function refreshData(){ renderMode(); renderBrief(); renderEps(); renderOut(false); renderNotebook(); }
 
 /* ---------- events ---------- */
 /* picking an episode picks its type: 重演 once it has saved cards, otherwise 新演.
